@@ -27,6 +27,34 @@ fn location_to_piece_index(lat: f64, lon: f64, num_pieces: usize) -> usize {
     piece_idx % num_pieces
 }
 
+fn pieces_in_radius(lat: f64, lon: f64, radius_miles: f64, num_pieces: usize, piece_length: i64) -> Vec<usize> {
+    // 1 degree lat ≈ 69 miles, 1 degree lon ≈ 69 * cos(lat) miles
+    let lat_deg_per_mile = 1.0 / 69.0;
+    let lon_deg_per_mile = 1.0 / (69.0 * lat.to_radians().cos());
+    
+    let lat_radius = radius_miles * lat_deg_per_mile;
+    let lon_radius = radius_miles * lon_deg_per_mile;
+    
+    // Sample grid points in radius
+    let mut pieces = std::collections::HashSet::new();
+    let steps = 20; // Grid resolution
+    
+    for i in 0..steps {
+        for j in 0..steps {
+            let dlat = (i as f64 / steps as f64 - 0.5) * 2.0 * lat_radius;
+            let dlon = (j as f64 / steps as f64 - 0.5) * 2.0 * lon_radius;
+            
+            let sample_lat = lat + dlat;
+            let sample_lon = lon + dlon;
+            
+            let piece = location_to_piece_index(sample_lat, sample_lon, num_pieces);
+            pieces.insert(piece);
+        }
+    }
+    
+    pieces.into_iter().collect()
+}
+
 async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     // Load user locations (default: ramanujan)
     let user = env::args().nth(1).unwrap_or_else(|| "ramanujan".to_string());
@@ -68,13 +96,15 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     
     for (i, loc) in user_locs.locations.iter().enumerate() {
         let piece_idx = location_to_piece_index(loc.lat, loc.lon, torrent.pieces.len());
+        let radius_pieces = pieces_in_radius(loc.lat, loc.lon, loc.radius_miles, torrent.pieces.len(), torrent.piece_length);
         let shard = piece_idx % 71; // Monster prime
         
         println!("  {} ({:.4}, {:.4})", loc.name, loc.lat, loc.lon);
         if let Some(wd) = &loc.wikidata {
             println!("    Wikidata: {}", wd);
         }
-        println!("    → Piece: {}", piece_idx);
+        println!("    → Center Piece: {}", piece_idx);
+        println!("    → {}mi Radius: {} pieces ({} MB)", loc.radius_miles, radius_pieces.len(), radius_pieces.len() * 4);
         println!("    → Shard: {} (mod 71)", shard);
         
         writeln!(location_index, "    {{")?;

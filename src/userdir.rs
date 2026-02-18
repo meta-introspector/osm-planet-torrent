@@ -11,6 +11,12 @@ pub struct Location {
     pub wikidata: Option<String>,  // Q entity
     #[serde(skip_serializing_if = "Option::is_none")]
     pub osm_node: Option<u64>,     // OSM node ID
+    #[serde(default = "default_radius")]
+    pub radius_miles: f64,         // Default 10 miles
+}
+
+fn default_radius() -> f64 {
+    10.0
 }
 
 #[derive(Debug, Serialize, Deserialize)]

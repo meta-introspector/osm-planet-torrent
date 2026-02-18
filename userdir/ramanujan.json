@@ -4,17 +4,32 @@
   "osm_user": null,
   "locations": [
     {
+      "name": "Ramanujan_House_Kumbakonam",
+      "lat": 10.9617,
+      "lon": 79.3881,
+      "wikidata": "Q185493",
+      "osm_node": null,
+      "radius_miles": 5.0
+    },
+    {
+      "name": "Ramanujan_Museum_Chennai",
+      "lat": 13.0827,
+      "lon": 80.2707,
+      "wikidata": "Q185493",
+      "osm_node": null
+    },
+    {
+      "name": "Namagiri_Temple_Namakkal",
+      "lat": 11.2189,
+      "lon": 78.1677,
+      "wikidata": null,
+      "osm_node": null
+    },
+    {
       "name": "Kumbakonam",
       "lat": 10.9617,
       "lon": 79.3881,
       "wikidata": "Q2744680",
-      "osm_node": null
-    },
-    {
-      "name": "Namagiri_Temple",
-      "lat": 10.9617,
-      "lon": 79.3881,
-      "wikidata": "Q6961568",
       "osm_node": null
     },
     {
