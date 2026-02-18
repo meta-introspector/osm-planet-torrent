@@ -1,0 +1,5 @@
+target/
+result
+*.torrent
+ramanujan-location-index.json
+secrets/
