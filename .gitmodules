@@ -1,3 +1,6 @@
 [submodule ".github/actions/rust-toolchain"]
 	path = .github/actions/rust-toolchain
 	url = https://github.com/meta-introspector/rust-toolchain
+[submodule "vendor/torrust-index"]
+	path = vendor/torrust-index
+	url = https://github.com/torrust/torrust-index
