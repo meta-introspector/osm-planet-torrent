@@ -1,5 +1,6 @@
 mod shard;
 mod userdir;
+mod wikidata;
 
 use lava_torrent::torrent::v1::Torrent;
 use reqwest;
@@ -8,6 +9,7 @@ use std::io::Write;
 use std::env;
 use tokio;
 use userdir::load_user_locations;
+use wikidata::{query_wikidata, get_linked_entities};
 
 const OSM_TORRENT_URL: &str = "https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent";
 
@@ -81,6 +83,50 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Pieces: {}", torrent.pieces.len());
     println!("  Piece length: {} bytes", torrent.piece_length);
     println!("  Total size: {} GB", torrent.length / (1024 * 1024 * 1024));
+    
+    // Query Wikidata for each location
+    println!("\n🌐 Querying Wikidata...");
+    let mut wikidata_results = File::create(format!("{}-wikidata.json", user_locs.user))?;
+    writeln!(wikidata_results, "{{")?;
+    writeln!(wikidata_results, r#"  "user": "{}","#, user_locs.user)?;
+    writeln!(wikidata_results, r#"  "queries": ["#)?;
+    
+    for (i, loc) in user_locs.locations.iter().enumerate() {
+        if let Some(qid) = &loc.wikidata {
+            println!("  Querying {} ({})...", loc.name, qid);
+            
+            match query_wikidata(qid).await {
+                Ok(data) => {
+                    writeln!(wikidata_results, "    {{")?;
+                    writeln!(wikidata_results, r#"      "location": "{}","#, loc.name)?;
+                    writeln!(wikidata_results, r#"      "qid": "{}","#, qid)?;
+                    writeln!(wikidata_results, r#"      "data": {}"#, serde_json::to_string_pretty(&data)?)?;
+                    
+                    // Get linked entities
+                    if let Ok(linked) = get_linked_entities(qid).await {
+                        println!("    → {} linked entities", linked.len());
+                        writeln!(wikidata_results, r#"      ,"linked": {}"#, serde_json::to_string(&linked)?)?;
+                    }
+                    
+                    write!(wikidata_results, "    }}")?;
+                }
+                Err(e) => {
+                    println!("    ✗ Error: {}", e);
+                }
+            }
+            
+            if i < user_locs.locations.len() - 1 {
+                writeln!(wikidata_results, ",")?;
+            } else {
+                writeln!(wikidata_results)?;
+            }
+        }
+    }
+    
+    writeln!(wikidata_results, "  ]")?;
+    writeln!(wikidata_results, "}}")?;
+    
+    println!("\n✓ Wikidata results saved to {}-wikidata.json", user_locs.user);
     
     // Index locations to pieces
     println!("\n🗺️ {} Journey → Torrent Pieces:", user_locs.user);
