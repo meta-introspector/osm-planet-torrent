@@ -1,0 +1,263 @@
+{
+  "user": "ramanujan",
+  "queries": [
+    {
+      "location": "Ramanujan_House_Kumbakonam",
+      "qid": "Q83163",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Srinivasa_Ramanujan"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q83163"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Srinivasa Ramanujan",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q76592","Q123885","Q129286","Q170790","Q173491","Q184337","Q326653","Q332342","Q353426","Q630650","Q691109","Q913399","Q949694","Q1441456","Q1914905","Q2454031","Q2630765","Q2641368","Q3044802","Q3276293","Q3523242","Q3524002","Q5512452","Q5588681","Q6581097","Q7415529","Q7829974","Q15631401","Q25211004","Q75822711","Q108821688","Q9089","Q9824","Q12479","Q15182","Q5","Q35794","Q83364","Q170198","Q192089","Q193394","Q938102","Q1082910","Q1427367","Q1529876","Q1991596","Q2657718","Q3005682","Q3115527","Q3301793"]
+    },
+    {
+      "location": "Ramanujan_Museum_Chennai",
+      "qid": "Q83163",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Srinivasa_Ramanujan"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q83163"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Srinivasa Ramanujan",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q76592","Q123885","Q129286","Q170790","Q173491","Q184337","Q326653","Q332342","Q353426","Q630650","Q691109","Q913399","Q949694","Q1441456","Q1914905","Q2454031","Q2630765","Q2641368","Q3044802","Q3276293","Q3523242","Q3524002","Q5512452","Q5588681","Q6581097","Q7415529","Q7829974","Q15631401","Q25211004","Q75822711","Q108821688","Q9089","Q9824","Q12479","Q15182","Q5","Q35794","Q83364","Q170198","Q192089","Q193394","Q938102","Q1082910","Q1427367","Q1529876","Q1991596","Q2657718","Q3005682","Q3115527","Q3301793"]
+    },
+    {
+      "location": "Kumbakonam",
+      "qid": "Q2744680",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/1814_in_architecture"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q2744680"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "1814 in architecture",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q2744556","Q2809815","Q7478643","Q18340514","Q12271"]
+    },
+    {
+      "location": "Chennai",
+      "qid": "Q1352",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Chennai"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(80.275 13.0825)"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1352"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Chennai",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q286536","Q745456","Q867541","Q983475","Q1139352","Q1637706","Q1772596","Q2618458","Q3181656","Q4114391","Q7214215","Q7510220","Q11271835","Q15501654","Q19219752","Q51929311","Q126937278","Q668","Q914","Q975","Q1445","Q1794","Q1865","Q2795","Q5885","Q6828","Q11725","Q15116","Q16554","Q48","Q41278","Q56061","Q5255999","Q5333650","Q5497514","Q5535130","Q6173448","Q9686444","Q11037573","Q15884878","Q15884879","Q17423324","Q21829736","Q21829879","Q21830863","Q21830864","Q28681964","Q84037878","Q136688833"]
+    },
+    {
+      "location": "London",
+      "qid": "Q84",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/London"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-0.1275 51.507222222)"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q84"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "London",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q159273","Q163700","Q174844","Q200250","Q208511","Q334155","Q466221","Q1066984","Q51929311","Q108178728","Q406","Q472","Q515","Q585","Q649","Q727","Q956","Q987","Q1156","Q1353","Q1435","Q1486","Q1490","Q1491","Q1489","Q1850","Q1860","Q1865","Q2841","Q3410","Q3561","Q3616","Q3630","Q8660","Q8686","Q9248","Q19660","Q19686","Q19914","Q23220","Q23229","Q23240","Q23276","Q23298","Q23306","Q23346","Q23564","Q60","Q64","Q65"]
+    },
+    {
+      "location": "Cambridge",
+      "qid": "Q350",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Cambridge"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(0.1225 52.208055555)"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q350"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Cambridge",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q81581","Q1115575","Q1187811","Q1357964","Q1549591","Q1779149","Q5025388","Q21713103","Q110390579","Q515","Q1860","Q2966","Q6574","Q6655","Q8229","Q145","Q49111","Q602358","Q857732","Q867541","Q3181656","Q4173137","Q7117958","Q8328535","Q8918347","Q9217862","Q9223834","Q10824295","Q15999991","Q19077875","Q20096917","Q30612390","Q82327266","Q106020208","Q131719188","Q23112","Q35794","Q48006"]
+    },
+    {
+      "location": "Trinity_College",
+      "qid": "Q332342",
+      "data": {
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "coord",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Trinity_College,_Cambridge"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(0.116944444 52.206944444)"
+        },
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q332342"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Trinity College",
+          "xml:lang": "en"
+        }
+      }
+    ]
+  }
+}
+      ,"linked": ["Q258464","Q1244704","Q8237237","Q30612390","Q708676","Q1055028","Q1244442","Q2385804","Q2467461","Q4793582","Q5000397","Q7004570","Q7842821","Q8873194","Q15978826","Q17527294","Q19047539","Q19844914","Q21713103","Q26616676","Q124416981","Q125798404","Q350","Q3918","Q145","Q35794","Q37090","Q38370"]
+    }
+  ]
+}

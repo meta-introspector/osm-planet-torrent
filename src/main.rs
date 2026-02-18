@@ -2,6 +2,7 @@ mod shard;
 mod userdir;
 mod wikidata;
 mod monster;
+mod crawler;
 
 use lava_torrent::torrent::v1::Torrent;
 use reqwest;
@@ -12,6 +13,7 @@ use tokio;
 use userdir::load_user_locations;
 use wikidata::{query_wikidata, get_linked_entities};
 use monster::{calculate_monster_projection, print_monster_projection};
+use crawler::{extract_wikidata_from_results, recursive_wikidata_crawl};
 
 const OSM_TORRENT_URL: &str = "https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent";
 
@@ -185,6 +187,27 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     writeln!(location_index, "}}")?;
     
     println!("\n✓ Index saved to {}-location-index.json", user_locs.user);
+    
+    // Recursive Wikidata crawl
+    println!("\n🕸️ Recursive Wikidata crawl (depth 2)...");
+    let wikidata_file = format!("{}-wikidata.json", user_locs.user);
+    match extract_wikidata_from_results(&wikidata_file).await {
+        Ok(initial_qids) => {
+            println!("  Found {} initial Q IDs", initial_qids.len());
+            
+            match recursive_wikidata_crawl(initial_qids, 2).await {
+                Ok(crawl_data) => {
+                    let crawl_file = File::create(format!("{}-wikidata-crawl.json", user_locs.user))?;
+                    serde_json::to_writer_pretty(crawl_file, &crawl_data)?;
+                    println!("\n✓ Crawl saved to {}-wikidata-crawl.json", user_locs.user);
+                    println!("  Total entities: {}", crawl_data["total_entities"]);
+                }
+                Err(e) => println!("  ✗ Crawl error: {}", e),
+            }
+        }
+        Err(e) => println!("  ✗ Extract error: {}", e),
+    }
+    
     println!("\n∴ Now fetch only needed pieces! 🕉️→🎓");
     
     Ok(())
