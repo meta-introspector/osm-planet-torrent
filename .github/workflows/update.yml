@@ -12,9 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: meta-introspector/checkout@v4
+        with:
+          submodules: true
       
       - name: Install Rust
-        uses: meta-introspector/rust-toolchain@1.70.0
+        uses: ./.github/actions/rust-toolchain
       
       - name: Install dependencies
         run: |
