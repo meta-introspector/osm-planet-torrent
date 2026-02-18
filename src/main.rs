@@ -189,13 +189,13 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n✓ Index saved to {}-location-index.json", user_locs.user);
     
     // Recursive Wikidata crawl
-    println!("\n🕸️ Recursive Wikidata crawl (depth 2)...");
+    println!("\n🕸️ Recursive Wikidata crawl (depth 1, limit 17 per seed)...");
     let wikidata_file = format!("{}-wikidata.json", user_locs.user);
     match extract_wikidata_from_results(&wikidata_file).await {
         Ok(initial_qids) => {
             println!("  Found {} initial Q IDs", initial_qids.len());
             
-            match recursive_wikidata_crawl(initial_qids, 2).await {
+            match recursive_wikidata_crawl(initial_qids, 1).await {
                 Ok(crawl_data) => {
                     let crawl_file = File::create(format!("{}-wikidata-crawl.json", user_locs.user))?;
                     serde_json::to_writer_pretty(crawl_file, &crawl_data)?;

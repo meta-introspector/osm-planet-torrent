@@ -33,7 +33,7 @@ pub async fn get_linked_entities(qid: &str) -> Result<Vec<String>, Box<dyn std::
           wd:{} ?p ?linked .
           FILTER(STRSTARTS(STR(?linked), "http://www.wikidata.org/entity/Q"))
         }}
-        LIMIT 50
+        LIMIT 17
         "#,
         qid
     );
