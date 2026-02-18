@@ -29,16 +29,46 @@ Result: 5 pieces × 4 MB = 20 MB instead of 85 GB!
 ## Usage
 
 ```bash
-# Build
-nix build .#osm-torrent-client
+# Use default user (ramanujan)
+cargo run
 
-# Run
-./result/bin/osm-planet-torrent
+# Use your own user
+cargo run myuser
 
-# Output
-- osm-planet.torrent (437 KB)
-- ramanujan-location-index.json (location → piece mapping)
+# User locations stored in userdir/
 ```
+
+## User Locations
+
+Create `userdir/yourname.json`:
+
+```json
+{
+  "user": "yourname",
+  "wikidata_user": "Q12345",
+  "osm_user": "your_osm_username",
+  "locations": [
+    {
+      "name": "YourCity",
+      "lat": 40.7128,
+      "lon": -74.0060,
+      "wikidata": "Q60",
+      "osm_node": 123456
+    }
+  ]
+}
+```
+
+### Wikidata Integration
+
+- `wikidata_user`: Your Wikidata Q entity (e.g., Q185493 for Ramanujan)
+- `wikidata`: Location Q entity (e.g., Q84 for London)
+- Links to semantic web of knowledge
+
+### OSM Integration
+
+- `osm_user`: Your OpenStreetMap username
+- `osm_node`: Specific OSM node ID for location
 
 ## How It Works
 

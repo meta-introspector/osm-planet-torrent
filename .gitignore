@@ -1,5 +1,7 @@
+userdir/
+!userdir/ramanujan.json
 target/
 result
 *.torrent
-ramanujan-location-index.json
+*-location-index.json
 secrets/
