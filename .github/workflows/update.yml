@@ -25,9 +25,18 @@ jobs:
         run: |
           nix-shell -p rustc cargo pkg-config openssl --run "cargo build --release"
       
+      - name: List build output
+        run: |
+          ls -la target/release/ || echo "No target/release"
+          find . -name "osm-planet-torrent" -type f
+      
       - name: Generate index
         run: |
-          ./target/release/osm-planet-torrent ramanujan
+          if [ -f target/release/osm-planet-torrent ]; then
+            ./target/release/osm-planet-torrent ramanujan
+          else
+            cargo run --release ramanujan
+          fi
       
       - name: Generate Leaflet map
         run: |
