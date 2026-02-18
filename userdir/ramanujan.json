@@ -1,13 +1,13 @@
 {
   "user": "ramanujan",
-  "wikidata_user": "Q185493",
+  "wikidata_user": "Q83163",
   "osm_user": null,
   "locations": [
     {
       "name": "Ramanujan_House_Kumbakonam",
       "lat": 10.9617,
       "lon": 79.3881,
-      "wikidata": "Q185493",
+      "wikidata": "Q83163",
       "osm_node": null,
       "radius_miles": 5.0
     },
@@ -15,7 +15,7 @@
       "name": "Ramanujan_Museum_Chennai",
       "lat": 13.0827,
       "lon": 80.2707,
-      "wikidata": "Q185493",
+      "wikidata": "Q83163",
       "osm_node": null
     },
     {
