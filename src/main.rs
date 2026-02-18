@@ -1,6 +1,7 @@
 mod shard;
 mod userdir;
 mod wikidata;
+mod monster;
 
 use lava_torrent::torrent::v1::Torrent;
 use reqwest;
@@ -10,6 +11,7 @@ use std::env;
 use tokio;
 use userdir::load_user_locations;
 use wikidata::{query_wikidata, get_linked_entities};
+use monster::{calculate_monster_projection, print_monster_projection};
 
 const OSM_TORRENT_URL: &str = "https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent";
 
@@ -83,6 +85,15 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Pieces: {}", torrent.pieces.len());
     println!("  Piece length: {} bytes", torrent.piece_length);
     println!("  Total size: {} GB", torrent.length / (1024 * 1024 * 1024));
+    
+    // Calculate Monster projection
+    let projection = calculate_monster_projection(torrent.pieces.len(), torrent.piece_length);
+    print_monster_projection(&projection);
+    
+    // Save projection
+    let proj_file = File::create(format!("{}-monster-projection.json", user_locs.user))?;
+    serde_json::to_writer_pretty(proj_file, &projection)?;
+    println!("\n✓ Monster projection saved to {}-monster-projection.json", user_locs.user);
     
     // Query Wikidata for each location
     println!("\n🌐 Querying Wikidata...");
