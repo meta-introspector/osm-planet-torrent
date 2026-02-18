@@ -26,10 +26,12 @@ jobs:
       - name: Build and run
         run: |
           cargo run --release ramanujan
+          ls -lh ramanujan-*.json
       
       - name: Generate Leaflet map
         run: |
           mkdir -p docs
+          cat ramanujan-location-index.json | head -20
           python3 scripts/generate_map.py ramanujan-location-index.json docs/index.html
       
       - name: Deploy to GitHub Pages
