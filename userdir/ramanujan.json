@@ -1,0 +1,49 @@
+{
+  "user": "ramanujan",
+  "wikidata_user": "Q185493",
+  "osm_user": null,
+  "locations": [
+    {
+      "name": "Kumbakonam",
+      "lat": 10.9617,
+      "lon": 79.3881,
+      "wikidata": "Q2744680",
+      "osm_node": null
+    },
+    {
+      "name": "Namagiri_Temple",
+      "lat": 10.9617,
+      "lon": 79.3881,
+      "wikidata": "Q6961568",
+      "osm_node": null
+    },
+    {
+      "name": "Chennai",
+      "lat": 13.0827,
+      "lon": 80.2707,
+      "wikidata": "Q1352",
+      "osm_node": null
+    },
+    {
+      "name": "London",
+      "lat": 51.5074,
+      "lon": -0.1278,
+      "wikidata": "Q84",
+      "osm_node": null
+    },
+    {
+      "name": "Cambridge",
+      "lat": 52.2053,
+      "lon": 0.1218,
+      "wikidata": "Q350",
+      "osm_node": null
+    },
+    {
+      "name": "Trinity_College",
+      "lat": 52.2067,
+      "lon": 0.1165,
+      "wikidata": "Q332342",
+      "osm_node": null
+    }
+  ]
+}
