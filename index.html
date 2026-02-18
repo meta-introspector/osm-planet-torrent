@@ -22,7 +22,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
         
-        var locations = [{"name": "Ramanujan_House_Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q185493", "piece": 13668, "shard": 36}, {"name": "Ramanujan_Museum_Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q185493", "piece": 14137, "shard": 8}, {"name": "Namagiri_Temple_Namakkal", "lat": 11.2189, "lon": 78.1677, "piece": 13645, "shard": 13}, {"name": "Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q2744680", "piece": 13668, "shard": 36}, {"name": "Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q1352", "piece": 14137, "shard": 8}, {"name": "London", "lat": 51.5074, "lon": -0.1278, "wikidata": "Q84", "piece": 16793, "shard": 37}, {"name": "Cambridge", "lat": 52.2053, "lon": 0.1218, "wikidata": "Q350", "piece": 16945, "shard": 47}, {"name": "Trinity_College", "lat": 52.2067, "lon": 0.1165, "wikidata": "Q332342", "piece": 16945, "shard": 47}];
+        var locations = [{"name": "Ramanujan_House_Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q83163", "piece": 13668, "shard": 36}, {"name": "Ramanujan_Museum_Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q83163", "piece": 14137, "shard": 8}, {"name": "Namagiri_Temple_Namakkal", "lat": 11.2189, "lon": 78.1677, "piece": 13645, "shard": 13}, {"name": "Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q2744680", "piece": 13668, "shard": 36}, {"name": "Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q1352", "piece": 14137, "shard": 8}, {"name": "London", "lat": 51.5074, "lon": -0.1278, "wikidata": "Q84", "piece": 16793, "shard": 37}, {"name": "Cambridge", "lat": 52.2053, "lon": 0.1218, "wikidata": "Q350", "piece": 16945, "shard": 47}, {"name": "Trinity_College", "lat": 52.2067, "lon": 0.1165, "wikidata": "Q332342", "piece": 16945, "shard": 47}];
         
         locations.forEach(function(loc) {
             var marker = L.marker([loc.lat, loc.lon]).addTo(map);
@@ -39,7 +39,7 @@
         info.onAdd = function(map) {
             var div = L.DomUtil.create('div', 'info');
             div.innerHTML = '<h3>ramanujan</h3>';
-            div.innerHTML += 'Wikidata: <a href="https://www.wikidata.org/wiki/Q185493">Q185493</a><br>';
+            div.innerHTML += 'Wikidata: <a href="https://www.wikidata.org/wiki/Q83163">Q83163</a><br>';
             div.innerHTML += 'Locations: ' + locations.length + '<br>';
             div.innerHTML += 'Total pieces: 21763';
             return div;
