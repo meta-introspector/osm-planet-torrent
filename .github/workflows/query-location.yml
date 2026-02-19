@@ -1,0 +1,69 @@
+name: Query OSM Ramanujan Tiles
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: 'Latitude'
+        required: true
+        default: '10.9617'
+      longitude:
+        description: 'Longitude'
+        required: true
+        default: '79.3881'
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: meta-introspector/checkout@v4
+      
+      - name: Calculate Ramanujan tile
+        id: tile
+        run: |
+          python3 << 'EOF'
+          import os
+          
+          lat = float("${{ inputs.latitude }}")
+          lon = float("${{ inputs.longitude }}")
+          
+          # Ramanujan tiles: 71×59×47
+          tile_lat = int(((lat + 90) * 100) % 71)
+          tile_lon = int(((lon + 180) * 100) % 59)
+          tile_level = 0
+          
+          print(f"📍 Location: {lat}°N, {lon}°E")
+          print(f"🎯 Ramanujan tile: ({tile_lat}, {tile_lon}, {tile_level})")
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"tile_lat={tile_lat}\n")
+              f.write(f"tile_lon={tile_lon}\n")
+              f.write(f"tile_level={tile_level}\n")
+          EOF
+          
+      - name: Download tile
+        run: |
+          TILE="tile_$(printf '%02d' ${{ steps.tile.outputs.tile_lat }})_$(printf '%02d' ${{ steps.tile.outputs.tile_lon }})_$(printf '%02d' ${{ steps.tile.outputs.tile_level }}).csv.gz"
+          
+          echo "📥 Downloading: $TILE (~344 KB)"
+          
+          # Try HuggingFace first
+          wget "https://huggingface.co/datasets/meta-introspector/osm-ramanujan-tiles/resolve/main/$TILE" \
+            -O tile.csv.gz 2>/dev/null || \
+          # Fallback to Archive.org
+          wget "https://archive.org/download/osm-ramanujan-tiles/$TILE" \
+            -O tile.csv.gz 2>/dev/null || \
+          echo "⏳ Tile not yet available (sharding in progress)"
+          
+          if [ -f tile.csv.gz ]; then
+            gunzip tile.csv.gz
+            echo "✅ Downloaded $(wc -l < tile.csv) nodes"
+            head -5 tile.csv
+          fi
+          
+      - name: Upload result
+        if: success()
+        uses: meta-introspector/upload-artifact@v4
+        with:
+          name: ramanujan-tile-${{ inputs.latitude }}-${{ inputs.longitude }}
+          path: tile.csv
