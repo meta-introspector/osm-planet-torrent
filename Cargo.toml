@@ -3,6 +3,118 @@ name = "osm-planet-torrent"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "osm_planet_torrent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "osm-planet-torrent"
+path = "src/main.rs"
+
+[[bin]]
+name = "fetch-piece"
+path = "src/bin/fetch_piece.rs"
+
+[[bin]]
+name = "reconstruct-pbf"
+path = "src/bin/reconstruct_pbf.rs"
+
+[[bin]]
+name = "decode-zlib"
+path = "src/bin/decode_zlib.rs"
+
+[[bin]]
+name = "parse-pieces"
+path = "src/bin/parse_pieces.rs"
+
+[[bin]]
+name = "tile-shard"
+path = "src/bin/tile_shard.rs"
+
+[[bin]]
+name = "ramanujan-shard"
+path = "src/bin/ramanujan_shard.rs"
+
+[[bin]]
+name = "reshard-to-ramanujan"
+path = "src/bin/reshard_to_ramanujan.rs"
+
+[[bin]]
+name = "door-game"
+path = "src/bin/door_game.rs"
+
+[[bin]]
+name = "reshard-planet"
+path = "src/bin/reshard_planet.rs"
+
+[[bin]]
+name = "parse-dense"
+path = "src/bin/parse_dense.rs"
+
+[[bin]]
+name = "binary-search-pieces"
+path = "src/bin/binary_search_pieces.rs"
+
+[[bin]]
+name = "node-to-piece"
+path = "src/bin/node_to_piece.rs"
+
+[[bin]]
+name = "build-spatial-index"
+path = "src/bin/build_spatial_index.rs"
+
+[[bin]]
+name = "query-index"
+path = "src/bin/query_index.rs"
+
+[[bin]]
+name = "stream-and-index"
+path = "src/bin/stream_and_index.rs"
+
+[[bin]]
+name = "index-planet"
+path = "src/bin/index_planet.rs"
+
+[[bin]]
+name = "shard-index"
+path = "src/bin/shard_index.rs"
+
+[[bin]]
+name = "query-shards"
+path = "src/bin/query_shards.rs"
+
+[[bin]]
+name = "geo-shard"
+path = "src/bin/geo_shard.rs"
+
+[[bin]]
+name = "monster-shard"
+path = "src/bin/monster_shard.rs"
+
+[[bin]]
+name = "repack-planet"
+path = "src/bin/repack_planet.rs"
+
+[[bin]]
+name = "temporal-strata"
+path = "src/bin/temporal_strata.rs"
+
+[[bin]]
+name = "geo-split"
+path = "src/bin/geo_split.rs"
+
+[[bin]]
+name = "extract-kumbakonam"
+path = "src/bin/extract_kumbakonam.rs"
+
+[[bin]]
+name = "read-one-block"
+path = "src/bin/read_one_block.rs"
+
+[[bin]]
+name = "test-modular"
+path = "src/bin/test_modular.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "stream", "json"] }
@@ -13,4 +125,14 @@ sha2 = "0.10"
 url = "2.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-transmission-rpc = "0.4"
+osmpbf = "0.2"
+rayon = "1.10"
+crossbeam = "0.8"
+librqbit = { path = "vendor/rqbit/crates/librqbit" }
+anyhow = "1.0"
+parquet = "53.2.0"
+arrow = "53.2.0"
+hex = "0.4"
+prost = "0.13"
+flate2 = "1.0"
+chrono = "0.4"
