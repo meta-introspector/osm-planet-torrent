@@ -43,34 +43,30 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
         
-        var locations = [
-            {"name": "Ramanujan House", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q83163"},
-            {"name": "Ramanujan Museum", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q83163"},
-            {"name": "Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q2744680"},
-            {"name": "Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q1352"},
-            {"name": "London", "lat": 51.5074, "lon": -0.1278, "wikidata": "Q84"},
-            {"name": "Cambridge", "lat": 52.2053, "lon": 0.1218, "wikidata": "Q350"},
-            {"name": "Trinity College", "lat": 52.2067, "lon": 0.1165, "wikidata": "Q332342"}
-        ];
-        
-        locations.forEach(function(loc) {
-            var marker = L.marker([loc.lat, loc.lon]).addTo(map);
-            var popup = '<b>' + loc.name + '</b><br>';
-            if (loc.wikidata) {
-                popup += 'Wikidata: <a href="https://www.wikidata.org/wiki/' + loc.wikidata + '">' + loc.wikidata + '</a><br>';
-            }
-            marker.bindPopup(popup);
-        });
-        
-        var info = L.control({position: 'topright'});
-        info.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'info');
-            div.innerHTML = '<h3>Ramanujan Tiles</h3>';
-            div.innerHTML += '<div class="stats">Locations: ' + locations.length + '<br>';
-            div.innerHTML += 'Click map to query tile</div>';
-            return div;
-        };
-        info.addTo(map);
+        // Load wikidata locations
+        fetch('wikidata-locations.json')
+            .then(r => r.json())
+            .then(locations => {
+                locations.forEach(function(loc) {
+                    var marker = L.marker([loc.lat, loc.lon]).addTo(map);
+                    var popup = '<b>' + loc.name + '</b><br>';
+                    if (loc.wikidata) {
+                        popup += 'Wikidata: <a href="https://www.wikidata.org/wiki/' + loc.wikidata + '">' + loc.wikidata + '</a><br>';
+                    }
+                    popup += 'Lat: ' + loc.lat.toFixed(4) + ', Lon: ' + loc.lon.toFixed(4);
+                    marker.bindPopup(popup);
+                });
+                
+                var info = L.control({position: 'topright'});
+                info.onAdd = function(map) {
+                    var div = L.DomUtil.create('div', 'info');
+                    div.innerHTML = '<h3>Ramanujan Tiles</h3>';
+                    div.innerHTML += '<div class="stats">Locations: ' + locations.length + '<br>';
+                    div.innerHTML += 'Click map to query tile</div>';
+                    return div;
+                };
+                info.addTo(map);
+            });
         
         map.on('click', function(e) {
             document.getElementById('lat').value = e.latlng.lat.toFixed(4);
