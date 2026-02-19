@@ -24,8 +24,9 @@
         <h3>🗺️ OSM Planet Ramanujan Tiles</h3>
         <div class="stats">
             📦 System: 71 (lat) × 59 (lon) × 47 (level) = 196,883 tiles<br>
-            💾 Tile size: ~458 KB uncompressed, ~344 KB gzipped<br>
-            ⚡ Savings: 99.9996% (86 GB → 344 KB per query)
+            💾 Sample: 949 tiles available on Archive.org<br>
+            📍 Live data: <a href="https://archive.org/details/osm-ramanujan-tiles-sample">archive.org/details/osm-ramanujan-tiles-sample</a><br>
+            ⚡ Query: Download only your tile (~4 KB avg)
         </div>
         <br>
         <label>Latitude: <input type="number" id="lat" value="10.9617" step="0.0001"></label>
@@ -89,8 +90,8 @@
             result.innerHTML = `
                 <strong>📍 ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E</strong><br>
                 🎯 Tile: (${tile_lat}, ${tile_lon}, ${tile_level})<br>
-                📥 URL: <code>ramanujan_tiles/tile_${pad(tile_lat)}_${pad(tile_lon)}_${pad(tile_level)}.csv.gz</code><br>
-                💾 Size: ~344 KB
+                📥 URL: <a href="https://archive.org/download/osm-ramanujan-tiles-sample/tile_${pad(tile_lat)}_${pad(tile_lon)}_${pad(tile_level)}.csv" target="_blank">Download from Archive.org</a><br>
+                💾 Size: ~4 KB
             `;
             
             map.setView([lat, lon], 10);

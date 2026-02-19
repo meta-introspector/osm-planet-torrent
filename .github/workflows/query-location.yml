@@ -43,20 +43,16 @@ jobs:
           
       - name: Download tile
         run: |
-          TILE="tile_$(printf '%02d' ${{ steps.tile.outputs.tile_lat }})_$(printf '%02d' ${{ steps.tile.outputs.tile_lon }})_$(printf '%02d' ${{ steps.tile.outputs.tile_level }}).csv.gz"
+          TILE="tile_$(printf '%02d' ${{ steps.tile.outputs.tile_lat }})_$(printf '%02d' ${{ steps.tile.outputs.tile_lon }})_$(printf '%02d' ${{ steps.tile.outputs.tile_level }}).csv"
           
-          echo "📥 Downloading: $TILE (~344 KB)"
+          echo "📥 Downloading: $TILE"
           
-          # Try HuggingFace first
-          wget "https://huggingface.co/datasets/meta-introspector/osm-ramanujan-tiles/resolve/main/$TILE" \
-            -O tile.csv.gz 2>/dev/null || \
-          # Fallback to Archive.org
-          wget "https://archive.org/download/osm-ramanujan-tiles/$TILE" \
-            -O tile.csv.gz 2>/dev/null || \
-          echo "⏳ Tile not yet available (sharding in progress)"
+          # Download from Archive.org
+          wget "https://archive.org/download/osm-ramanujan-tiles-sample/$TILE" \
+            -O tile.csv 2>/dev/null || \
+          echo "⏳ Tile not available in sample dataset"
           
-          if [ -f tile.csv.gz ]; then
-            gunzip tile.csv.gz
+          if [ -f tile.csv ]; then
             echo "✅ Downloaded $(wc -l < tile.csv) nodes"
             head -5 tile.csv
           fi
