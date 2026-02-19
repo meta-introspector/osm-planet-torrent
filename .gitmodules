@@ -4,3 +4,6 @@
 [submodule "vendor/torrust-index"]
 	path = vendor/torrust-index
 	url = https://github.com/torrust/torrust-index
+[submodule "vendor/rqbit"]
+	path = vendor/rqbit
+	url = https://github.com/meta-introspector/rqbit
