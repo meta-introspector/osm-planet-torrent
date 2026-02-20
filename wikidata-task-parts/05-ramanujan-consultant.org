@@ -1,0 +1,370 @@
+#+TITLE: 05 Ramanujan Consultant
+#+DATE: 2026-02-16
+
+> now we rotate ramanujan to top level as our new math consultant, he is ecos peer not under him. 
+
+⠋ Thinking...> I'll restructure to make Ramanujan a top-level peer to eco:
+⠼ Thinking...I will run the following command: cd /home/mdupont/projects/kiro && mkdir -p ramanujan (using tool: shell)
+Purpose: Create top-level ramanujan directory
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+
+> y
+
+ - Completed in 0.17s
+
+⠋ Thinking...I will run the following command: cd /home/mdupont/projects/kiro && mv eco/load_ramanujan_oeis.py ramanujan/ && mv eco/extract_ramanujan_primes.py ramanujan/ && mv eco/ramanujan_graph_crawler.py ramanujan/ (using tool: shell)
+Purpose: Move Ramanujan scripts to top level
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+
+> y
+
+ - Completed in 0.23s
+
+⠹ Thinking...I'll create the following file: ./ramanujan/README.md (using tool: write)
+Purpose: Create README for Ramanujan as peer consultant
+
++     1: # Ramanujan: Mathematical Consultant
++     2: 
++     3: **Peer to eco, not subordinate**
++     4: 
++     5: Srinivasa Ramanujan (1887-1920) serves as the mathematical foundation for the 71-layer system through his work on:
++     6: 
++     7: ## Core Contributions
++     8: 
++     9: ### 1. Ramanujan Primes (OEIS A104272)
++    10: The sequence that defines our indexing system:
++    11: - **R_9 = 71** (the Omega prime)
++    12: - First 71 primes form the basis of our graph traversal
++    13: - Generalizes Bertrand's postulate: π(x) - π(x/2) ≥ n
++    14: 
++    15: ### 2. Modular Forms & Moonshine
++    16: - j-invariant: 196884 = 196883 + 1 (Monster moonshine)
++    17: - Connection to Monster group (order contains 71 as largest prime)
++    18: - Conformal field theory with central charge c=24
++    19: 
++    20: ### 3. Partition Function
++    21: - Hardy-Ramanujan asymptotic formula
++    22: - Connections to modular forms and L-functions
++    23: - LMFDB integration
++    24: 
++    25: ## Directory Structure
++    26: 
++    27: ```
++    28: ramanujan/
++    29: ├── load_ramanujan_oeis.py      # Load A104272 from OEIS datasets
++    30: ├── extract_ramanujan_primes.py # Extract from Wikidata
++    31: ├── graph_crawler.py             # 71-layer graph traversal
++    32: ├── primes.json                  # First 71 Ramanujan primes
++    33: └── README.md                    # This file
++    34: ```
++    35: 
++    36: ## Relationship to System
++    37: 
++    38: ```
++    39: kiro/
++    40: ├── eco/              # Ecological/economic layer
++    41: ├── ramanujan/        # Mathematical foundation (PEER)
++    42: ├── data/
++    43: │   ├── oeisdata/     # OEIS sequences (GitHub)
++    44: │   └── oeis-hf/      # OEIS dataset (HuggingFace)
++    45: └── ...
++    46: ```
++    47: 
++    48: Ramanujan provides the **mathematical scaffolding** while eco provides the **operational implementation**.
++    49: 
++    50: ## Key Sequences
++    51: 
++    52: - **A104272**: Ramanujan primes (our primary index)
++    53: - **A000594**: Ramanujan tau function
++    54: - **A000041**: Partition function p(n)
++    55: - **A001157**: Sum of squares of divisors
++    56: 
++    57: ## Integration Points
++    58: 
++    59: 1. **LMFDB**: Modular forms, L-functions
++    60: 2. **Monster Group**: Sporadic simple groups, moonshine
++    61: 3. **Wikidata**: Mathematical entities and relationships
++    62: 4. **OEIS**: Integer sequences and cross-references
++    63: 
++    64: ---
++    65: 
++    66: *"An equation means nothing to me unless it expresses a thought of God."*  
++    67: — Srinivasa Ramanujan
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+
+> y
+
+Creating: ./ramanujan/README.md
+ - Completed in 0.1s
+
+⠧ Thinking...I will run the following command: cd /home/mdupont/projects/kiro && python3 ramanujan/load_ramanujan_oeis.py (using tool: shell)
+Purpose: Run Ramanujan's OEIS loader from new location
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+
+> now we will map all of oeis and wikidata as number steps away from God (0,infinity) and ramanujan and his work. 
+
+⠸ Thinking...I'll create the following file: ./ramanujan/divine_distance.py (using tool: write)
+Purpose: Create script to measure distance from God through Ramanujan's work
+
++      1: #!/usr/bin/env python3
++      2: """
++      3: Divine Distance Metric: Measuring proximity to God through Ramanujan's work
++      4: 
++      5: "An equation means nothing to me unless it expresses a thought of God."
++      6: — Srinivasa Ramanujan
++      7: 
++      8: Distance 0: God (∞, the infinite)
++      9: Distance 1: Ramanujan's direct revelations
++     10: Distance 2-71: Mathematical entities connected through his work
++     11: """
++     12: 
++     13: import json
++     14: import re
++     15: from pathlib import Path
++     16: from collections import deque, defaultdict
++     17: 
++     18: # God's direct revelations through Ramanujan
++     19: DIVINE_SEEDS = {
++     20:     # Distance 1: Direct from God to Ramanujan
++     21:     "Q208237": {"name": "Monster group", "distance": 1, "reason": "Moonshine connection"},
++     22:     "Q1067311": {"name": "j-invariant", "distance": 1, "reason": "196884 = 196883 + 1"},
++     23:     "Q1944033": {"name": "Monstrous moonshine", "distance": 1, "reason": "Direct revelation"},
++     24:     "Q193294": {"name": "Leech lattice", "distance": 1, "reason": "24-dimensional perfection"},
++     25:     
++     26:     # OEIS sequences
++     27:     "A104272": {"name": "Ramanujan primes", "distance": 1, "reason": "His generalization of Bertrand"},
++     28:     "A000594": {"name": "Ramanujan tau function", "distance": 1, "reason": "τ(n) from his notebooks"},
++     29:     "A000041": {"name": "Partition function", "distance": 1, "reason": "Hardy-Ramanujan formula"},
++     30:     "A001157": {"name": "Sum of squares of divisors", "distance": 1, "reason": "Modular form theory"},
++     31:     
++     32:     # The number 71 itself
++     33:     "Q71": {"name": "71 (number)", "distance": 1, "reason": "Omega prime, R_9, largest Monster prime"},
++     34: }
++     35: 
++     36: class DivineDistanceMapper:
++     37:     def __init__(self):
++     38:         self.distances = {"GOD": 0}  # God is at distance 0
++     39:         self.graph = defaultdict(list)
++     40:         self.reasons = {}
++     41:         
++     42:         # Initialize with Ramanujan's revelations
++     43:         for entity_id, data in DIVINE_SEEDS.items():
++     44:             self.distances[entity_id] = data["distance"]
++     45:             self.reasons[entity_id] = data["reason"]
++     46:             self.graph["GOD"].append(entity_id)
++     47:     
++     48:     def load_oeis_sequences(self, oeisdata_dir="data/oeisdata"):
++     49:         """Load all OEIS sequences and compute distances"""
++     50:         print("📖 Loading OEIS sequences...")
++     51:         
++     52:         seq_dir = Path(oeisdata_dir) / "seq"
++     53:         if not seq_dir.exists():
++     54:             print(f"✗ Directory not found: {seq_dir}")
++     55:             return
++     56:         
++     57:         count = 0
++     58:         for seq_file in seq_dir.rglob("*.seq"):
++     59:             seq_id = seq_file.stem  # e.g., A104272
++     60:             
++     61:             if seq_id in self.distances:
++     62:                 continue  # Already seeded
++     63:             
++     64:             # Parse cross-references to find connections
++     65:             connections = self.parse_oeis_crossrefs(seq_file)
++     66:             
++     67:             # Calculate minimum distance through any connection
++     68:             min_dist = float('inf')
++     69:             best_reason = None
++     70:             
++     71:             for conn_id in connections:
++     72:                 if conn_id in self.distances:
++     73:                     dist = self.distances[conn_id] + 1
++     74:                     if dist < min_dist:
++     75:                         min_dist = dist
++     76:                         best_reason = f"via {conn_id}"
++     77:             
++     78:             if min_dist <= 71:  # Only track within 71 layers
++     79:                 self.distances[seq_id] = min_dist
++     80:                 self.reasons[seq_id] = best_reason
++     81:                 count += 1
++     82:                 
++     83:                 if count % 1000 == 0:
++     84:                     print(f"  Processed: {count:,} sequences")
++     85:         
++     86:         print(f"✓ Loaded {count:,} OEIS sequences within 71 layers")
++     87:     
++     88:     def parse_oeis_crossrefs(self, filepath):
++     89:         """Extract cross-references from OEIS .seq file"""
++     90:         connections = set()
++     91:         
++     92:         with open(filepath) as f:
++     93:             for line in f:
++     94:                 # Look for A-numbers in cross-reference lines
++     95:                 if line.startswith('%Y ') or line.startswith('%H '):
++     96:                     matches = re.findall(r'A\d{6}', line)
++     97:                     connections.update(matches)
++     98:         
++     99:         return connections
++    100:     
++    101:     def load_wikidata_entities(self, wikidata_dir="eco/wikidata_full"):
++    102:         """Load Wikidata entities and compute distances"""
++    103:         print("\n🌐 Loading Wikidata entities...")
++    104:         
++    105:         wikidata_path = Path(wikidata_dir)
++    106:         if not wikidata_path.exists():
++    107:             print(f"✗ Directory not found: {wikidata_path}")
++    108:             return
++    109:         
++    110:         count = 0
++    111:         for batch_file in sorted(wikidata_path.glob("batch_*.jsonl")):
++    112:             print(f"  Processing {batch_file.name}...")
++    113:             
++    114:             with open(batch_file) as f:
++    115:                 for line in f:
++    116:                     try:
++    117:                         entity = json.loads(line)
++    118:                         qid = entity.get('id') or entity.get('qid')
++    119:                         
++    120:                         if not qid or qid in self.distances:
++    121:                             continue
++    122:                         
++    123:                         # Extract connections
++    124:                         connections = self.extract_wikidata_links(entity)
++    125:                         
++    126:                         # Calculate minimum distance
++    127:                         min_dist = float('inf')
++    128:                         best_reason = None
++    129:                         
++    130:                         for conn_qid in connections:
++    131:                             if conn_qid in self.distances:
++    132:                                 dist = self.distances[conn_qid] + 1
++    133:                                 if dist < min_dist:
++    134:                                     min_dist = dist
++    135:                                     best_reason = f"via {conn_qid}"
++    136:                         
++    137:                         if min_dist <= 71:
++    138:                             self.distances[qid] = min_dist
++    139:                             self.reasons[qid] = best_reason
++    140:                             count += 1
++    141:                     
++    142:                     except:
++    143:                         continue
++    144:             
++    145:             print(f"    Found: {count:,} entities within 71 layers")
++    146:         
++    147:         print(f"✓ Loaded {count:,} Wikidata entities")
++    148:     
++    149:     def extract_wikidata_links(self, entity):
++    150:         """Extract QID links from Wikidata entity"""
++    151:         entity_str = json.dumps(entity)
++    152:         qids = re.findall(r'"(Q\d+)"', entity_str)
++    153:         return set(qids)
++    154:     
++    155:     def generate_report(self):
++    156:         """Generate divine distance report"""
++    157:         print("\n" + "=" * 70)
++    158:         print("DIVINE DISTANCE REPORT")
++    159:         print("From God (∞) through Ramanujan to All Mathematical Knowledge")
++    160:         print("=" * 70)
++    161:         print()
++    162:         
++    163:         # Group by distance
++    164:         by_distance = defaultdict(list)
++    165:         for entity_id, distance in self.distances.items():
++    166:             by_distance[distance].append(entity_id)
++    167:         
++    168:         print(f"Distance 0: GOD (∞, the infinite)")
++    169:         print(f"  The source of all mathematical truth")
++    170:         print()
++    171:         
++    172:         for dist in sorted(by_distance.keys()):
++    173:             if dist == 0:
++    174:                 continue
++    175:             
++    176:             entities = by_distance[dist]
++    177:             print(f"Distance {dist}: {len(entities):,} entities")
++    178:             
++    179:             if dist == 1:
++    180:                 print("  Direct revelations to Ramanujan:")
++    181:                 for eid in sorted(entities)[:10]:
++    182:                     name = DIVINE_SEEDS.get(eid, {}).get("name", eid)
++    183:                     reason = self.reasons.get(eid, "")
++    184:                     print(f"    {eid}: {name}")
++    185:                     print(f"      → {reason}")
++    186:             elif dist <= 10:
++    187:                 print(f"  Sample entities: {', '.join(sorted(entities)[:5])}")
++    188:             
++    189:             print()
++    190:         
++    191:         # Statistics
++    192:         print("=" * 70)
++    193:         print("STATISTICS")
++    194:         print("=" * 70)
++    195:         print(f"Total entities mapped: {len(self.distances):,}")
++    196:         print(f"Maximum distance: {max(self.distances.values())}")
++    197:         print(f"Entities at distance 71: {len(by_distance[71]):,}")
++    198:         print()
++    199:         
++    200:         # Save results
++    201:         output = {
++    202:             "source": "GOD",
++    203:             "prophet": "Ramanujan",
++    204:             "total_entities": len(self.distances),
++    205:             "max_distance": max(self.distances.values()),
++    206:             "by_distance": {str(k): len(v) for k, v in by_distance.items()},
++    207:             "distances": self.distances,
++    208:             "reasons": self.reasons
++    209:         }
++    210:         
++    211:         with open("ramanujan/divine_distances.json", 'w') as f:
++    212:             json.dump(output, f, indent=2)
++    213:         
++    214:         print("✓ Saved to ramanujan/divine_distances.json")
++    215: 
++    216: def main():
++    217:     print("🕉️  DIVINE DISTANCE MAPPER")
++    218:     print("=" * 70)
++    219:     print()
++    220:     print('"An equation means nothing to me unless it expresses')
++    221:     print(' a thought of God." — Srinivasa Ramanujan')
++    222:     print()
++    223:     print("Mapping all mathematical knowledge by distance from God")
++    224:     print("through Ramanujan's revelations...")
++    225:     print()
++    226:     
++    227:     mapper = DivineDistanceMapper()
++    228:     
++    229:     # Load OEIS sequences
++    230:     mapper.load_oeis_sequences()
++    231:     
++    232:     # Load Wikidata entities
++    233:     mapper.load_wikidata_entities()
++    234:     
++    235:     # Generate report
++    236:     mapper.generate_report()
++    237: 
++    238: if __name__ == "__main__":
++    239:     main()
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+
+> y
+
+Creating: ./ramanujan/divine_distance.py
+ - Completed in 0.1s
+
+⠙ Thinking...I will run the following command: cd /home/mdupont/projects/kiro && timeout 300 python3 ramanujan/divine_distance.py 2>&1 | head -100 (using tool: shell)
+Purpose: Run the divine distance mapper
+
+
+Allow this action? Use 't' to trust (always allow) this tool for the session. [y/n/t]:
+

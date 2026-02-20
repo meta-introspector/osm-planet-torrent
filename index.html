@@ -1,50 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ramanujan's OSM Torrent Locations</title>
+    <title>OSM + Wikidata Interactive Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { margin: 0; padding: 0; font-family: sans-serif; }
-        #map { height: 100vh; }
-        .info { padding: 10px; background: white; border-radius: 5px; }
-        .info h3 { margin: 0 0 10px; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        #map { height: 75vh; }
+        .info-panel { 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .info-panel h2 { margin: 0 0 10px; font-size: 24px; }
+        .stats { 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        .query-controls { margin: 15px 0; }
+        .query-controls input { 
+            padding: 10px; 
+            margin: 5px; 
+            width: 140px; 
+            border: none;
+            border-radius: 4px;
+        }
+        .query-controls button { 
+            padding: 10px 20px; 
+            background: #fff; 
+            color: #667eea; 
+            border: none; 
+            cursor: pointer; 
+            margin: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .query-controls button:hover { background: #f0f0f0; }
+        #result { 
+            background: rgba(255,255,255,0.1); 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        .marker-popup { font-size: 13px; }
+        .marker-popup strong { color: #667eea; }
+        .tile-info { font-family: monospace; font-size: 11px; }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div class="info-panel">
+        <h2>🗺️ OSM + Wikidata Interactive Map</h2>
+        <div class="stats">
+            <strong>📦 Ramanujan Tile System:</strong> 71 (lat) × 59 (lon) × 47 (level) = 196,883 tiles<br>
+            <strong>📍 Wikidata Locations:</strong> <span id="location-count">Loading...</span> places loaded<br>
+            <strong>💾 Live Data:</strong> <a href="https://archive.org/details/osm-ramanujan-tiles-sample" style="color: #fff;">Archive.org</a><br>
+            <strong>⚡ Query:</strong> Click map or enter coordinates to download your tile (~4 KB)
+        </div>
+        <div class="query-controls">
+            <input type="number" id="lat" placeholder="Latitude" step="0.0001">
+            <input type="number" id="lon" placeholder="Longitude" step="0.0001">
+            <button onclick="queryLocation()">🔍 Query Tile</button>
+            <button onclick="loadKumbakonam()">🕉️ Kumbakonam</button>
+            <button onclick="loadLondon()">🇬🇧 London</button>
+            <button onclick="loadCambridge()">🎓 Cambridge</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    
     <script>
-        var map = L.map('map').setView([20, 20], 2);
+        // Initialize map
+        var map = L.map('map').setView([20, 0], 2);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors | Ramanujan Tiles by meta-introspector',
+            maxZoom: 19
         }).addTo(map);
         
-        var locations = [{"name": "Ramanujan_House_Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q83163", "piece": 13668, "shard": 36}, {"name": "Ramanujan_Museum_Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q83163", "piece": 14137, "shard": 8}, {"name": "Namagiri_Temple_Namakkal", "lat": 11.2189, "lon": 78.1677, "piece": 13645, "shard": 13}, {"name": "Kumbakonam", "lat": 10.9617, "lon": 79.3881, "wikidata": "Q2744680", "piece": 13668, "shard": 36}, {"name": "Chennai", "lat": 13.0827, "lon": 80.2707, "wikidata": "Q1352", "piece": 14137, "shard": 8}, {"name": "London", "lat": 51.5074, "lon": -0.1278, "wikidata": "Q84", "piece": 16793, "shard": 37}, {"name": "Cambridge", "lat": 52.2053, "lon": 0.1218, "wikidata": "Q350", "piece": 16945, "shard": 47}, {"name": "Trinity_College", "lat": 52.2067, "lon": 0.1165, "wikidata": "Q332342", "piece": 16945, "shard": 47}];
+        var markers = [];
         
-        locations.forEach(function(loc) {
-            var marker = L.marker([loc.lat, loc.lon]).addTo(map);
-            var popup = '<b>' + loc.name + '</b><br>';
-            if (loc.wikidata) {
-                popup += 'Wikidata: <a href="https://www.wikidata.org/wiki/' + loc.wikidata + '">' + loc.wikidata + '</a><br>';
+        // Calculate Ramanujan tile
+        function calculateTile(lat, lon) {
+            const tile_lat = Math.floor(((lat + 90) * 100) % 71);
+            const tile_lon = Math.floor(((lon + 180) * 100) % 59);
+            const tile_level = 0; // admin_level will be used later
+            return { tile_lat, tile_lon, tile_level };
+        }
+        
+        // Query location
+        function queryLocation() {
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lon = parseFloat(document.getElementById('lon').value);
+            
+            if (isNaN(lat) || isNaN(lon)) {
+                document.getElementById('result').innerHTML = '❌ Invalid coordinates';
+                return;
             }
-            popup += 'Piece: ' + loc.piece + '<br>';
-            popup += 'Shard: ' + loc.shard + ' (mod 71)';
-            marker.bindPopup(popup);
+            
+            const tile = calculateTile(lat, lon);
+            const tileFile = `tile_${String(tile.tile_lat).padStart(2, '0')}_${String(tile.tile_lon).padStart(2, '0')}_${String(tile.tile_level).padStart(2, '0')}.csv`;
+            const url = `https://archive.org/download/osm-ramanujan-tiles-sample/${tileFile}`;
+            
+            document.getElementById('result').innerHTML = `
+                <strong>📍 Location:</strong> ${lat.toFixed(4)}, ${lon.toFixed(4)}<br>
+                <strong>🎯 Tile:</strong> (${tile.tile_lat}, ${tile.tile_lon}, ${tile.tile_level})<br>
+                <strong>📥 Download:</strong> <a href="${url}" style="color: #fff;" target="_blank">${tileFile}</a>
+            `;
+            
+            // Add marker
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<div class="marker-popup"><strong>Query Point</strong><br>Tile: (${tile.tile_lat}, ${tile.tile_lon}, ${tile.tile_level})</div>`)
+                .openPopup();
+            
+            map.setView([lat, lon], 10);
+        }
+        
+        // Preset locations
+        function loadKumbakonam() {
+            document.getElementById('lat').value = 10.9617;
+            document.getElementById('lon').value = 79.3881;
+            queryLocation();
+        }
+        
+        function loadLondon() {
+            document.getElementById('lat').value = 51.5074;
+            document.getElementById('lon').value = -0.1278;
+            queryLocation();
+        }
+        
+        function loadCambridge() {
+            document.getElementById('lat').value = 52.2053;
+            document.getElementById('lon').value = 0.1218;
+            queryLocation();
+        }
+        
+        // Click map to query
+        map.on('click', function(e) {
+            document.getElementById('lat').value = e.latlng.lat.toFixed(4);
+            document.getElementById('lon').value = e.latlng.lng.toFixed(4);
+            queryLocation();
         });
         
-        var info = L.control({position: 'topright'});
-        info.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'info');
-            div.innerHTML = '<h3>ramanujan</h3>';
-            div.innerHTML += 'Wikidata: <a href="https://www.wikidata.org/wiki/Q83163">Q83163</a><br>';
-            div.innerHTML += 'Locations: ' + locations.length + '<br>';
-            div.innerHTML += 'Total pieces: 21763';
-            return div;
-        };
-        info.addTo(map);
+        // Load wikidata locations
+        fetch('wikidata-locations.json')
+            .then(r => r.json())
+            .then(locations => {
+                document.getElementById('location-count').textContent = locations.length;
+                
+                locations.forEach(function(loc) {
+                    const marker = L.circleMarker([loc.lat, loc.lon], {
+                        radius: 6,
+                        fillColor: '#ff6b6b',
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div class="marker-popup">
+                            <strong>${loc.name}</strong><br>
+                            <span class="tile-info">
+                                Wikidata: <a href="https://www.wikidata.org/wiki/${loc.wikidata}" target="_blank">${loc.wikidata}</a><br>
+                                Coords: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}<br>
+                                Tile: (${loc.tile_lat}, ${loc.tile_lon}, ${loc.tile_level})
+                            </span>
+                        </div>
+                    `);
+                    
+                    markers.push(marker);
+                });
+                
+                console.log(`✅ Loaded ${locations.length} Wikidata locations`);
+            })
+            .catch(err => {
+                console.error('Error loading locations:', err);
+                document.getElementById('location-count').textContent = 'Error loading';
+            });
     </script>
 </body>
 </html>
