@@ -136,3 +136,7 @@ hex = "0.4"
 prost = "0.13"
 flate2 = "1.0"
 chrono = "0.4"
+
+[[bin]]
+name = "tile-shard-leech"
+path = "src/bin/tile_shard_leech.rs"
