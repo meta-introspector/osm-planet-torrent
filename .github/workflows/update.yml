@@ -1,38 +1,29 @@
-name: Update OSM Torrent Index
+name: Deploy OSM + Wikidata Map
 
 on:
-  schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
-  workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  update:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: meta-introspector/checkout@v4
-        with:
-          submodules: true
       
-      - name: Install Rust
-        uses: ./.github/actions/rust-toolchain
-      
-      - name: Install dependencies
+      - name: Verify docs structure
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
-      
-      - name: Build and run
-        run: |
-          cargo run --release ramanujan
-          ls -lh ramanujan-*.json
-      
-      - name: Generate Leaflet map
-        run: |
-          mkdir -p docs
-          cat ramanujan-location-index.json | head -20
-          python3 scripts/generate_map.py ramanujan-location-index.json docs/index.html
+          ls -lh docs/
+          test -f docs/index.html
+          test -f docs/wikidata-locations.json
+          echo "✅ All files present"
       
       - name: Deploy to GitHub Pages
         uses: meta-introspector/actions-gh-pages@v3
