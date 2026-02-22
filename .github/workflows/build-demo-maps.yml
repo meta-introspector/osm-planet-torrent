@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Generate Leaflet map (no Nix needed)
+    - name: Generate Leaflet map
       run: |
         mkdir -p public
         
@@ -25,58 +29,39 @@ jobs:
         <!DOCTYPE html>
         <html>
         <head>
-          <title>OSM Torrent Map - Kumbakonam</title>
+          <title>OSM Torrent Map</title>
           <meta charset="utf-8">
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
           <style>
-            body { margin: 0; padding: 0; }
+            body { margin: 0; }
             #map { height: 100vh; }
             .info { 
               position: absolute; top: 10px; right: 10px; z-index: 1000;
               background: white; padding: 15px; border-radius: 5px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
           </style>
         </head>
         <body>
           <div class="info">
             <h3>🧲 Torrent Piece 13668</h3>
-            <p><strong>Location:</strong> Kumbakonam</p>
-            <p><strong>Size:</strong> 4MB</p>
-            <p><strong>Reduction:</strong> 99.995%</p>
-            <p><strong>Built:</strong> GitHub Actions</p>
+            <p><strong>Kumbakonam</strong></p>
+            <p>4MB | 99.995% reduction</p>
           </div>
           <div id="map"></div>
           <script>
             var map = L.map('map').setView([10.9617, 79.3881], 13);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '© OpenStreetMap | Piece 13668'
-            }).addTo(map);
-            
-            L.marker([10.9617, 79.3881])
-              .bindPopup('<b>Ramanujan House</b><br>Piece 13668')
-              .addTo(map)
-              .openPopup();
-            
-            L.circle([10.9617, 79.3881], {
-              color: '#ff7800',
-              fillColor: '#ff7800',
-              fillOpacity: 0.2,
-              radius: 5000
-            }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.marker([10.9617, 79.3881]).bindPopup('<b>Ramanujan House</b>').addTo(map).openPopup();
+            L.circle([10.9617, 79.3881], {color: '#ff7800', fillOpacity: 0.2, radius: 5000}).addTo(map);
           </script>
         </body>
         </html>
         HTML
-        
-        echo "✅ Generated map"
     
-    - name: Copy existing doors
+    - name: Copy doors
       run: |
-        cp -r public_html/* public/ 2>/dev/null || echo "No public_html"
-        ls -lh public/doors/ 2>/dev/null || echo "No doors yet"
+        cp -r public_html/* public/ 2>/dev/null || true
     
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -85,7 +70,15 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: './public'
+  
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     
+    steps:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
