@@ -1,0 +1,33 @@
+{
+  "project": "osm-planet-torrent",
+  "symmetries": {
+    "input": [
+      71,
+      59,
+      47
+    ],
+    "output": [
+      17,
+      23,
+      59
+    ],
+    "invariants": [
+      "geographic",
+      "torrent",
+      "Monster-Group",
+      "OSM"
+    ]
+  },
+  "complexity": {
+    "max_lines_per_function": 20,
+    "max_cyclomatic": 8
+  },
+  "description": "OSM Planet extraction via torrent with Monster Group compression",
+  "derived": {
+    "port": 17206,
+    "hostname": "l71s59z47.monster.local",
+    "ipv6": "fd71::47:3b:2f",
+    "vpn_zone": "monster-1",
+    "selinux": "monster_t:s71:c59.c47"
+  }
+}
