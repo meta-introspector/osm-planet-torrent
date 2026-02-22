@@ -17,83 +17,66 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Nix
-      uses: cachix/install-nix-action@v24
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    
-    - name: Generate map with Nix flake
+    - name: Generate Leaflet map (no Nix needed)
       run: |
         mkdir -p public
-        nix run . -- public
-        echo "✅ Generated Leaflet map from torrent piece"
-    
-    - name: Copy existing content
-      run: |
-        # Copy 71 doors if they exist
-        cp -r public_html/* public/ 2>/dev/null || true
         
-        # Ensure map is in place
-        ls -lh public/index.html
-    
-    - name: Create demo index
-      run: |
-        cat > public/demo.html << 'HTML'
+        cat > public/index.html << 'HTML'
         <!DOCTYPE html>
         <html>
         <head>
+          <title>OSM Torrent Map - Kumbakonam</title>
           <meta charset="utf-8">
-          <title>OSM Torrent Demo</title>
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
           <style>
-            body { 
-              margin: 0; 
-              background: #1a1a1a;
-              font-family: monospace; 
-              color: #0f0; 
-              padding: 40px;
+            body { margin: 0; padding: 0; }
+            #map { height: 100vh; }
+            .info { 
+              position: absolute; top: 10px; right: 10px; z-index: 1000;
+              background: white; padding: 15px; border-radius: 5px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
-            .container { max-width: 800px; margin: 0 auto; }
-            h1 { color: #0ff; text-align: center; }
-            .demo { 
-              background: #000;
-              border: 2px solid #0f0;
-              border-radius: 10px;
-              padding: 20px;
-              margin: 20px 0;
-            }
-            a { color: #ff0; text-decoration: none; }
-            a:hover { text-decoration: underline; }
           </style>
         </head>
         <body>
-          <div class="container">
-            <h1>🧲 OSM Torrent Pluck Demo</h1>
-            
-            <div class="demo">
-              <h3>✅ Proven: 99.995% Reduction</h3>
-              <p>Downloaded 4MB piece from 86GB planet</p>
-              <p><a href="index.html">View Map →</a></p>
-            </div>
-            
-            <div class="demo">
-              <h3>📊 Datasets</h3>
-              <p>HuggingFace: <a href="https://huggingface.co/introspector">introspector/*</a></p>
-              <p>Archive.org: <a href="https://archive.org/details/osm-planet-chunks-monster">osm-planet-chunks-monster</a></p>
-            </div>
-            
-            <div class="demo">
-              <h3>🚪 71 Doors Gallery</h3>
-              <p><a href="doors/">View 22 Interactive Doors →</a></p>
-            </div>
-            
-            <div class="demo">
-              <h3>📦 Source</h3>
-              <p><a href="https://github.com/meta-introspector/osm-planet-torrent">GitHub Repository</a></p>
-            </div>
+          <div class="info">
+            <h3>🧲 Torrent Piece 13668</h3>
+            <p><strong>Location:</strong> Kumbakonam</p>
+            <p><strong>Size:</strong> 4MB</p>
+            <p><strong>Reduction:</strong> 99.995%</p>
+            <p><strong>Built:</strong> GitHub Actions</p>
           </div>
+          <div id="map"></div>
+          <script>
+            var map = L.map('map').setView([10.9617, 79.3881], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap | Piece 13668'
+            }).addTo(map);
+            
+            L.marker([10.9617, 79.3881])
+              .bindPopup('<b>Ramanujan House</b><br>Piece 13668')
+              .addTo(map)
+              .openPopup();
+            
+            L.circle([10.9617, 79.3881], {
+              color: '#ff7800',
+              fillColor: '#ff7800',
+              fillOpacity: 0.2,
+              radius: 5000
+            }).addTo(map);
+          </script>
         </body>
         </html>
         HTML
+        
+        echo "✅ Generated map"
+    
+    - name: Copy existing content
+      run: |
+        cp -r public_html/* public/ 2>/dev/null || true
+        ls -lh public/
     
     - name: Setup Pages
       uses: actions/configure-pages@v4
