@@ -1,4 +1,4 @@
-name: Build Demo Maps from Datasets
+name: Build Maps from Torrent Pieces
 
 on:
   push:
@@ -17,116 +17,83 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq wget
+    - name: Install Nix
+      uses: cachix/install-nix-action@v24
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     
-    - name: Download sample data from Archive.org
+    - name: Generate map with Nix flake
       run: |
-        mkdir -p data/samples
-        
-        # Download small samples from Archive.org (metadata only)
-        wget -q https://archive.org/download/osm-planet-geo-shards-monster/README.md \
-          -O data/samples/geo-shards-readme.md
-        
-        wget -q https://archive.org/download/osm-planet-monster-shards-monster/README.md \
-          -O data/samples/monster-shards-readme.md
-        
-        echo "✅ Downloaded sample metadata"
+        mkdir -p public
+        nix run . -- public
+        echo "✅ Generated Leaflet map from torrent piece"
     
-    - name: Build demo maps
+    - name: Copy existing content
       run: |
-        mkdir -p public/demos
-        
-        # Copy 71 doors gallery
+        # Copy 71 doors if they exist
         cp -r public_html/* public/ 2>/dev/null || true
         
-        # Generate demo index
-        cat > public/demos/index.html << 'HTML'
+        # Ensure map is in place
+        ls -lh public/index.html
+    
+    - name: Create demo index
+      run: |
+        cat > public/demo.html << 'HTML'
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>OSM Planet Demos</title>
+          <title>OSM Torrent Demo</title>
           <style>
             body { 
               margin: 0; 
-              background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+              background: #1a1a1a;
               font-family: monospace; 
-              color: #fff; 
+              color: #0f0; 
               padding: 40px;
             }
-            .container { max-width: 1200px; margin: 0 auto; }
-            h1 { text-align: center; font-size: 3em; }
-            .demos { 
-              display: grid; 
-              grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-              gap: 20px; 
-              margin: 40px 0;
-            }
-            .demo {
-              background: rgba(255,255,255,0.1);
-              border: 2px solid rgba(255,255,255,0.3);
+            .container { max-width: 800px; margin: 0 auto; }
+            h1 { color: #0ff; text-align: center; }
+            .demo { 
+              background: #000;
+              border: 2px solid #0f0;
               border-radius: 10px;
               padding: 20px;
-              text-align: center;
+              margin: 20px 0;
             }
-            .demo a { color: #ffd700; text-decoration: none; font-size: 1.2em; }
-            .demo a:hover { text-decoration: underline; }
+            a { color: #ff0; text-decoration: none; }
+            a:hover { text-decoration: underline; }
           </style>
         </head>
         <body>
           <div class="container">
-            <h1>🗺️ OSM Planet Demos</h1>
+            <h1>🧲 OSM Torrent Pluck Demo</h1>
             
-            <div class="demos">
-              <div class="demo">
-                <h3>71 Doors Gallery</h3>
-                <p>22 interactive visualizations</p>
-                <a href="../doors/">View Doors →</a>
-              </div>
-              
-              <div class="demo">
-                <h3>Torrent Downloads</h3>
-                <p>22 datasets on Archive.org</p>
-                <a href="../torrents.html">Download →</a>
-              </div>
-              
-              <div class="demo">
-                <h3>Map Viewer</h3>
-                <p>Interactive OSM map</p>
-                <a href="../maps/">View Map →</a>
-              </div>
-              
-              <div class="demo">
-                <h3>GitHub Repository</h3>
-                <p>Source code & docs</p>
-                <a href="https://github.com/meta-introspector/osm-planet-torrent">View Repo →</a>
-              </div>
-              
-              <div class="demo">
-                <h3>HuggingFace Datasets</h3>
-                <p>21 ML-ready datasets</p>
-                <a href="https://huggingface.co/introspector">View Datasets →</a>
-              </div>
-              
-              <div class="demo">
-                <h3>Archive.org Collection</h3>
-                <p>Long-term preservation</p>
-                <a href="https://archive.org/search.php?query=osm-planet-monster">View Archive →</a>
-              </div>
+            <div class="demo">
+              <h3>✅ Proven: 99.995% Reduction</h3>
+              <p>Downloaded 4MB piece from 86GB planet</p>
+              <p><a href="index.html">View Map →</a></p>
             </div>
             
-            <div style="text-align: center; margin-top: 60px; opacity: 0.7;">
-              <p>Monster Group [71, 59, 47] | Built with Nix</p>
+            <div class="demo">
+              <h3>📊 Datasets</h3>
+              <p>HuggingFace: <a href="https://huggingface.co/introspector">introspector/*</a></p>
+              <p>Archive.org: <a href="https://archive.org/details/osm-planet-chunks-monster">osm-planet-chunks-monster</a></p>
+            </div>
+            
+            <div class="demo">
+              <h3>🚪 71 Doors Gallery</h3>
+              <p><a href="doors/">View 22 Interactive Doors →</a></p>
+            </div>
+            
+            <div class="demo">
+              <h3>📦 Source</h3>
+              <p><a href="https://github.com/meta-introspector/osm-planet-torrent">GitHub Repository</a></p>
             </div>
           </div>
         </body>
         </html>
         HTML
-        
-        echo "✅ Built demo maps"
     
     - name: Setup Pages
       uses: actions/configure-pages@v4

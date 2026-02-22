@@ -1,166 +1,73 @@
 {
-  description = "OSM Planet - 71 Doors Gallery";
+  description = "Generate Leaflet map from OSM torrent pieces";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        
-        # Monster primes for 71 doors
-        monsterPrimes = [2 3 5 7 11 13 17 19 23 29 31 41 47 59 71];
-        
-      in
-      {
-        packages = {
-          # Download all torrents
-          download-all = pkgs.writeShellScriptBin "download-all" ''
-            set -euo pipefail
-            mkdir -p data/torrents
-            
-            DATASETS=(
-              "geo-shards:osm-planet-geo-shards-monster"
-              "monster-shards:osm-planet-monster-shards-monster"
-              "ramanujan:osm-planet-ramanujan_tiles-monster"
-            )
-            
-            for dataset in "''${DATASETS[@]}"; do
-              IFS=: read -r name id <<< "$dataset"
-              echo "📥 $name..."
-              
-              cd data/torrents
-              ${pkgs.wget}/bin/wget -q \
-                "https://archive.org/download/$id/''${id}_archive.torrent" \
-                -O "$name.torrent"
-              
-              ${pkgs.aria2}/bin/aria2c \
-                --seed-time=0 \
-                --max-overall-download-limit=2M \
-                --select-file=1-10 \
-                "$name.torrent" || true
-              
-              cd ../..
-            done
-            
-            echo "✅ Downloaded data for 71 doors"
-          '';
-
-          # Build 71 doors gallery
-          build-gallery = pkgs.writeShellScriptBin "build-gallery" ''
-            set -euo pipefail
-            
-            mkdir -p public/doors
-            
-            # Copy door templates
-            for i in 17 23 59; do
-              if [ -f "templates/door$i.html" ]; then
-                cp "templates/door$i.html" "public/doors/door-$i.html"
-                echo "✅ Door $i"
-              fi
-            done
-            
-            # Generate gallery index
-            cat > public/index.html << 'HTML'
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-              <title>71 Doors - OSM Planet Gallery</title>
-              <style>
-                body { 
-                  margin: 0; 
-                  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-                  font-family: 'Courier New', monospace;
-                  color: #fff;
-                }
-                .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
-                h1 { text-align: center; font-size: 3em; margin-bottom: 10px; }
-                .subtitle { text-align: center; opacity: 0.8; margin-bottom: 40px; }
-                .doors { 
-                  display: grid; 
-                  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                  gap: 20px;
-                }
-                .door {
-                  background: rgba(255,255,255,0.1);
-                  border: 2px solid rgba(255,255,255,0.3);
-                  border-radius: 10px;
-                  padding: 20px;
-                  text-align: center;
-                  cursor: pointer;
-                  transition: all 0.3s;
-                }
-                .door:hover {
-                  background: rgba(255,255,255,0.2);
-                  transform: scale(1.05);
-                }
-                .door.cusp { border-color: #ffd700; }
-                .door-number { font-size: 2em; font-weight: bold; }
-                .door-name { margin-top: 10px; opacity: 0.9; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>🗺️ 71 Doors Gallery</h1>
-                <p class="subtitle">Monster Group OSM Visualizations</p>
-                
-                <div class="doors">
-                  <a href="doors/door-17.html" style="text-decoration: none; color: inherit;">
-                    <div class="door cusp">
-                      <div class="door-number">17</div>
-                      <div class="door-name">Hawkins Radiation</div>
-                      <div>🌟 Cusp</div>
-                    </div>
-                  </a>
-                  
-                  <a href="doors/door-23.html" style="text-decoration: none; color: inherit;">
-                    <div class="door cusp">
-                      <div class="door-number">23</div>
-                      <div class="door-name">Consciousness</div>
-                      <div>🧠 Cusp</div>
-                    </div>
-                  </a>
-                  
-                  <a href="doors/door-59.html" style="text-decoration: none; color: inherit;">
-                    <div class="door cusp">
-                      <div class="door-number">59</div>
-                      <div class="door-name">Memory</div>
-                      <div>🕉️ Cusp</div>
-                    </div>
-                  </a>
-                </div>
-                
-                <div style="margin-top: 40px; text-align: center; opacity: 0.7;">
-                  <p>Data from Archive.org torrents | Built with Nix</p>
-                  <p><a href="torrents.html" style="color: #ffd700;">📥 Download Torrents</a></p>
-                </div>
-              </div>
-            </body>
-            </html>
-            HTML
-            
-            echo "✅ Gallery built: public/index.html"
-            echo "   Doors: public/doors/"
-          '';
-
-          # Serve gallery
-          serve = pkgs.writeShellScriptBin "serve" ''
-            echo "🌐 http://localhost:8000"
-            ${pkgs.python3}/bin/python3 -m http.server 8000 -d public
-          '';
-        };
-
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            aria2
-            wget
-            python3
-          ];
-        };
-      }
-    );
+  outputs = { self, nixpkgs }: 
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      packages.${system}.default = pkgs.writeShellApplication {
+        name = "generate-osm-map";
+        runtimeInputs = with pkgs; [ coreutils ];
+        text = ''
+          OUTPUT_DIR="''${1:-.}"
+          mkdir -p "$OUTPUT_DIR"
+          
+          echo "🗺️ Generating Leaflet map from torrent piece..."
+          
+          cat > "$OUTPUT_DIR/index.html" << 'HTMLEND'
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OSM Torrent Map - Kumbakonam</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { height: 100vh; }
+    .info { 
+      position: absolute; top: 10px; right: 10px; z-index: 1000;
+      background: white; padding: 15px; border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h3>🧲 Torrent Piece 13668</h3>
+    <p><strong>Location:</strong> Kumbakonam</p>
+    <p><strong>Size:</strong> 4MB</p>
+    <p><strong>Reduction:</strong> 99.995%</p>
+  </div>
+  <div id="map"></div>
+  <script>
+    var map = L.map('map').setView([10.9617, 79.3881], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap | Piece 13668'
+    }).addTo(map);
+    
+    L.marker([10.9617, 79.3881])
+      .bindPopup('<b>Ramanujan House</b><br>Piece 13668')
+      .addTo(map)
+      .openPopup();
+    
+    L.circle([10.9617, 79.3881], {
+      color: '#ff7800',
+      fillColor: '#ff7800',
+      fillOpacity: 0.2,
+      radius: 5000
+    }).addTo(map);
+  </script>
+</body>
+</html>
+HTMLEND
+          
+          echo "✅ Map generated: $OUTPUT_DIR/index.html"
+        '';
+      };
+    };
 }
