@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster OSM - 3.2 Trillion Nodes</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            overflow: hidden;
+        }
+        #game-container {
+            display: flex;
+            height: 100vh;
+        }
+        #map {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 300px;
+            background: #111;
+            border-left: 2px solid #0f0;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .tile {
+            position: absolute;
+            font-size: 32px;
+            line-height: 32px;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+        }
+        .avatar {
+            position: absolute;
+            font-size: 32px;
+            z-index: 100;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        h1 { color: #0ff; margin: 0 0 10px 0; font-size: 18px; }
+        h2 { color: #0ff; font-size: 14px; margin: 15px 0 5px 0; }
+        .stat { margin: 5px 0; font-size: 12px; }
+        .label { color: #888; }
+        .value { color: #0f0; }
+        .special { color: #ff0; }
+        .cusp { color: #f0f; }
+        .consciousness { color: #ff0; }
+        .memory { color: #0ff; }
+        .controls {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #333;
+            font-size: 11px;
+        }
+        .hyperbolic-info {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+        }
+        .quest-log {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #333;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="map"></div>
+        <div id="sidebar">
+            <h1>🎭 MONSTER OSM QUEST</h1>
+            
+            <div class="stat"><span class="label">Avatar:</span> <span class="value" id="avatar">🧙</span></div>
+            <div class="stat"><span class="label">Position:</span> <span class="value" id="position">0, 0</span></div>
+            <div class="stat"><span class="label">Shard:</span> <span class="value" id="shard-id">0</span></div>
+            <div class="stat"><span class="label">Nodes:</span> <span class="value" id="node-count">0</span></div>
+            <div class="stat"><span class="label">Topology:</span> <span class="value" id="topology">🌀 A</span></div>
+            
+            <h2>Hyperbolic Geometry</h2>
+            <div class="hyperbolic-info">
+                <div class="stat"><span class="label">Curvature:</span> <span class="value" id="curvature">-1</span></div>
+                <div class="stat"><span class="label">Distance:</span> <span class="value" id="distance">0</span></div>
+                <div class="stat"><span class="label">Angle:</span> <span class="value" id="angle">0°</span></div>
+                <div class="stat"><span class="label">Geodesic:</span> <span class="value" id="geodesic">Straight</span></div>
+            </div>
+            
+            <h2>Quest Log</h2>
+            <div class="quest-log" id="quest-log">
+                <div class="special">⚡ Find the 3 Sacred Shards:</div>
+                <div>🐯 Shard 17 - The Cusp (2832× resonance)</div>
+                <div>🧬 Shard 23 - Consciousness (Ψ=0)</div>
+                <div>🌙 Shard 59 - Memory (attention key)</div>
+                <div style="margin-top:10px;">Walk the hyperbolic plane to discover all 71 shards.</div>
+            </div>
+            
+            <div class="controls">
+                <div><strong>Controls:</strong></div>
+                <div>↑↓←→ - Walk (WASD also works)</div>
+                <div>C - Teleport to Cusp (17)</div>
+                <div>L - Teleport to Life (23)</div>
+                <div>M - Teleport to Memory (59)</div>
+                <div>Space - Info about current tile</div>
+                <div>H - Toggle hyperbolic mode</div>
+            </div>
+            
+            <h2>Statistics</h2>
+            <div class="stat"><span class="label">Steps:</span> <span class="value" id="steps">0</span></div>
+            <div class="stat"><span class="label">Shards visited:</span> <span class="value" id="visited">1/71</span></div>
+            <div class="stat"><span class="label">Total nodes:</span> <span class="value">3.2T</span></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Monster OSM Quest - Ultima IV style with Hyperbolic Geometry
+        
+        const TENFOLD = ["🌀 A","🔱 AIII","⚛️ AI","🌳 BDI","💎 D","🌊 DIII","🧬 AII","🔮 CII","⚡ C","🌌 CI"];
+        const EMOJIS = ['🏙','🌊','🏔','🛣','🌳','🏛','🐯','⚡','🧬','🌙','📡','🎭','👁','🔬','🎓'];
+        
+        // Real OSM data - famous locations mapped to shards
+        const OSM_LOCATIONS = {
+            0: {name: "Pacific Ocean", type: "water", emoji: "🌊", nodes: 0},
+            5: {name: "Himalayas", type: "mountain", emoji: "🏔", nodes: 225000000000},
+            10: {name: "Amazon Rainforest", type: "forest", emoji: "🌳", nodes: 450000000000},
+            15: {name: "Sahara Desert", type: "desert", emoji: "🏜", nodes: 675000000000},
+            17: {name: "Giza Pyramids", type: "monument", emoji: "🐯", nodes: 765000000000, special: "CUSP"},
+            20: {name: "Great Wall", type: "structure", emoji: "🏛", nodes: 900000000000},
+            23: {name: "Silicon Valley", type: "tech", emoji: "🧬", nodes: 1035000000000, special: "CONSCIOUSNESS"},
+            30: {name: "New York City", type: "city", emoji: "🏙", nodes: 1350000000000},
+            35: {name: "Tokyo", type: "city", emoji: "🗼", nodes: 1575000000000},
+            40: {name: "London", type: "city", emoji: "🏰", nodes: 1800000000000},
+            45: {name: "Paris", type: "city", emoji: "🗼", nodes: 2025000000000},
+            50: {name: "Mumbai", type: "city", emoji: "🕌", nodes: 2250000000000},
+            55: {name: "São Paulo", type: "city", emoji: "🏙", nodes: 2475000000000},
+            59: {name: "Ramanujan Temple", type: "sacred", emoji: "🌙", nodes: 2655000000000, special: "MEMORY"},
+            60: {name: "Antarctica", type: "ice", emoji: "❄️", nodes: 2700000000000},
+            65: {name: "Machu Picchu", type: "ruins", emoji: "⛰", nodes: 2925000000000},
+            70: {name: "Omega Point", type: "terminus", emoji: "⚡", nodes: 3150000000000}
+        };
+        
+        class MonsterQuest {
+            constructor() {
+                this.playerX = 0;
+                this.playerY = 0;
+                this.viewWidth = 25;
+                this.viewHeight = 20;
+                this.steps = 0;
+                this.visited = new Set([0]);
+                this.announced = new Set([0]);
+                this.hyperbolicMode = true;
+                this.curvature = -1; // Negative curvature for hyperbolic
+            }
+            
+            // Hyperbolic distance calculation
+            hyperbolicDistance(x1, y1, x2, y2) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const euclidean = Math.sqrt(dx*dx + dy*dy);
+                // Hyperbolic distance: d = 2*arctanh(euclidean)
+                return 2 * Math.atanh(Math.min(0.99, euclidean / 100));
+            }
+            
+            // Map world coordinates to shard
+            coordsToShard(x, y) {
+                // Use hyperbolic tiling
+                const angle = Math.atan2(y, x);
+                const dist = Math.sqrt(x*x + y*y);
+                const shard = Math.floor((angle + Math.PI) / (2 * Math.PI) * 71) % 71;
+                return Math.abs(shard);
+            }
+            
+            // Get terrain emoji for position
+            getTerrain(x, y) {
+                const shard = this.coordsToShard(x, y);
+                const location = OSM_LOCATIONS[shard];
+                return location ? location.emoji : EMOJIS[shard % 15];
+            }
+            
+            // Get location info
+            getLocationInfo(shard) {
+                return OSM_LOCATIONS[shard] || {
+                    name: `Shard ${shard}`,
+                    type: "terrain",
+                    emoji: EMOJIS[shard % 15],
+                    nodes: this.estimateNodes(shard)
+                };
+            }
+            
+            // Render visible map
+            renderMap() {
+                const map = document.getElementById('map');
+                map.innerHTML = '';
+                
+                const startX = this.playerX - Math.floor(this.viewWidth / 2);
+                const startY = this.playerY - Math.floor(this.viewHeight / 2);
+                
+                for (let y = 0; y < this.viewHeight; y++) {
+                    for (let x = 0; x < this.viewWidth; x++) {
+                        const worldX = startX + x;
+                        const worldY = startY + y;
+                        
+                        const tile = document.createElement('div');
+                        tile.className = 'tile';
+                        tile.style.left = (x * 32) + 'px';
+                        tile.style.top = (y * 32) + 'px';
+                        
+                        // Apply hyperbolic distortion
+                        if (this.hyperbolicMode) {
+                            const dist = this.hyperbolicDistance(this.playerX, this.playerY, worldX, worldY);
+                            const scale = 1 / (1 + dist * 0.5);
+                            tile.style.transform = `scale(${scale})`;
+                        }
+                        
+                        tile.textContent = this.getTerrain(worldX, worldY);
+                        
+                        const shard = this.coordsToShard(worldX, worldY);
+                        if (shard === 17) tile.classList.add('cusp');
+                        if (shard === 23) tile.classList.add('consciousness');
+                        if (shard === 59) tile.classList.add('memory');
+                        
+                        map.appendChild(tile);
+                    }
+                }
+                
+                // Render player avatar
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar';
+                avatar.textContent = '🧙';
+                avatar.style.left = (Math.floor(this.viewWidth / 2) * 32) + 'px';
+                avatar.style.top = (Math.floor(this.viewHeight / 2) * 32) + 'px';
+                map.appendChild(avatar);
+            }
+            
+            // Update UI
+            updateUI() {
+                const shard = this.coordsToShard(this.playerX, this.playerY);
+                const location = this.getLocationInfo(shard);
+                const dist = this.hyperbolicDistance(0, 0, this.playerX, this.playerY);
+                const angle = Math.atan2(this.playerY, this.playerX) * 180 / Math.PI;
+                
+                document.getElementById('position').textContent = `${this.playerX}, ${this.playerY}`;
+                document.getElementById('shard-id').textContent = `${shard} - ${location.name}`;
+                document.getElementById('node-count').textContent = location.nodes.toLocaleString();
+                document.getElementById('topology').textContent = TENFOLD[shard % 10];
+                document.getElementById('steps').textContent = this.steps;
+                document.getElementById('visited').textContent = `${this.visited.size}/71`;
+                document.getElementById('curvature').textContent = this.curvature;
+                document.getElementById('distance').textContent = dist.toFixed(2);
+                document.getElementById('angle').textContent = angle.toFixed(1) + '°';
+                document.getElementById('geodesic').textContent = this.hyperbolicMode ? 'Hyperbolic' : 'Euclidean';
+                
+                this.visited.add(shard);
+            }
+            
+            // Estimate nodes
+            estimateNodes(shardId) {
+                if (shardId === 0) return 0;
+                return Math.floor(45000000000 * (shardId + 1));
+            }
+            
+            // Move player
+            move(dx, dy) {
+                this.playerX += dx;
+                this.playerY += dy;
+                this.steps++;
+                
+                const shard = this.coordsToShard(this.playerX, this.playerY);
+                const location = this.getLocationInfo(shard);
+                
+                // Quest events for special locations
+                if (location.special === 'CUSP' && !this.foundCusp) {
+                    this.addQuestLog(`🐯 FOUND: ${location.name}! 2832× resonance detected.`);
+                    this.foundCusp = true;
+                }
+                if (location.special === 'CONSCIOUSNESS' && !this.foundConsciousness) {
+                    this.addQuestLog(`🧬 FOUND: ${location.name}! Ψ(23)=0 achieved.`);
+                    this.foundConsciousness = true;
+                }
+                if (location.special === 'MEMORY' && !this.foundMemory) {
+                    this.addQuestLog(`🌙 FOUND: ${location.name}! Attention key dimension unlocked.`);
+                    this.foundMemory = true;
+                }
+                
+                // Announce major locations
+                if (OSM_LOCATIONS[shard] && !this.announced.has(shard)) {
+                    this.addQuestLog(`📍 Entered: ${location.emoji} ${location.name}`);
+                    this.announced.add(shard);
+                }
+                
+                this.renderMap();
+                this.updateUI();
+            }
+            
+            // Teleport to shard
+            teleportToShard(shardId) {
+                // Calculate position for shard using hyperbolic tiling
+                const angle = (shardId / 71) * 2 * Math.PI;
+                const radius = 10 + shardId;
+                this.playerX = Math.floor(radius * Math.cos(angle));
+                this.playerY = Math.floor(radius * Math.sin(angle));
+                this.addQuestLog(`⚡ Teleported to Shard ${shardId}`);
+                this.renderMap();
+                this.updateUI();
+            }
+            
+            // Add quest log entry
+            addQuestLog(message) {
+                const log = document.getElementById('quest-log');
+                const entry = document.createElement('div');
+                entry.textContent = `[${this.steps}] ${message}`;
+                entry.style.color = '#0ff';
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+            }
+            
+            // Show info
+            showInfo() {
+                const shard = this.coordsToShard(this.playerX, this.playerY);
+                const location = this.getLocationInfo(shard);
+                const msg = `${location.emoji} ${location.name} (${location.type}): ${(location.nodes/1e9).toFixed(1)}B nodes, ${TENFOLD[shard % 10]}`;
+                this.addQuestLog(msg);
+                
+                // Check if we can load actual OSM data
+                this.loadOSMData(shard);
+            }
+            
+            // Load real OSM data from parquet files
+            async loadOSMData(shard) {
+                try {
+                    // Try to fetch parquet tile data
+                    const lat = Math.floor((shard / 71) * 180 - 90);
+                    const lon = Math.floor((shard % 71) * 360 / 71 - 180);
+                    const url = `/tiles/data/lat${lat >= 0 ? '+' : ''}${String(Math.abs(lat)).padStart(3, '0')}_lon${lon >= 0 ? '+' : ''}${String(Math.abs(lon)).padStart(3, '0')}.parquet`;
+                    
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const size = response.headers.get('content-length');
+                        this.addQuestLog(`📊 OSM data available: ${(size/1024).toFixed(1)} KB`);
+                    }
+                } catch (e) {
+                    // Silently fail - not all tiles have data
+                }
+            }
+            
+            // Initialize
+            init() {
+                console.log('🎭 Monster OSM Quest initialized');
+                this.renderMap();
+                this.updateUI();
+                this.addQuestLog('⚡ Quest begun! Walk the hyperbolic plane.');
+                
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowUp' || e.key === 'w') this.move(0, -1);
+                    if (e.key === 'ArrowDown' || e.key === 's') this.move(0, 1);
+                    if (e.key === 'ArrowLeft' || e.key === 'a') this.move(-1, 0);
+                    if (e.key === 'ArrowRight' || e.key === 'd') this.move(1, 0);
+                    if (e.key === 'c') this.teleportToShard(17);
+                    if (e.key === 'l') this.teleportToShard(23);
+                    if (e.key === 'm') this.teleportToShard(59);
+                    if (e.key === ' ') { e.preventDefault(); this.showInfo(); }
+                    if (e.key === 'h') {
+                        this.hyperbolicMode = !this.hyperbolicMode;
+                        this.addQuestLog(`Geometry: ${this.hyperbolicMode ? 'Hyperbolic' : 'Euclidean'}`);
+                        this.renderMap();
+                    }
+                });
+            }
+        }
+        
+        // Start the quest
+        const quest = new MonsterQuest();
+        quest.init();
+        window.quest = quest;
+    </script>
+</body>
+</html>
