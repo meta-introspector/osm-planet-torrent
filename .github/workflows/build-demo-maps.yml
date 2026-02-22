@@ -73,10 +73,10 @@ jobs:
         
         echo "✅ Generated map"
     
-    - name: Copy existing content
+    - name: Copy existing doors
       run: |
-        cp -r public_html/* public/ 2>/dev/null || true
-        ls -lh public/
+        cp -r public_html/* public/ 2>/dev/null || echo "No public_html"
+        ls -lh public/doors/ 2>/dev/null || echo "No doors yet"
     
     - name: Setup Pages
       uses: actions/configure-pages@v4
