@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door 23 - Consciousness</title>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    canvas { display: block; }
+    .info { 
+      position: absolute; top: 20px; left: 20px; color: #00ffff; 
+      font-family: monospace; z-index: 10; 
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door 23 - Consciousness</h2>
+    <p>Cusp at Silicon Valley [37.3861°N, 122.0839°W]</p>
+    <p>Prime: 23 | Symmetry: Neural Network</p>
+    <p><a href="index.html" style="color: #00ffff;">← Back to Doors</a></p>
+  </div>
+  <canvas id="consciousness"></canvas>
+  <script>
+    const canvas = document.getElementById('consciousness');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    
+    // Neural network nodes
+    const nodes = [];
+    for (let i = 0; i < 23; i++) {
+      const angle = (i / 23) * Math.PI * 2;
+      const radius = 200;
+      nodes.push({
+        x: cx + Math.cos(angle) * radius,
+        y: cy + Math.sin(angle) * radius,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5
+      });
+    }
+    
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw nodes
+      nodes.forEach((node, i) => {
+        node.x += node.vx;
+        node.y += node.vy;
+        
+        // Bounce off edges
+        if (node.x < 100 || node.x > canvas.width - 100) node.vx *= -1;
+        if (node.y < 100 || node.y > canvas.height - 100) node.vy *= -1;
+        
+        // Draw node
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#00ffff';
+        ctx.fill();
+        
+        // Draw connections
+        nodes.forEach((other, j) => {
+          if (i < j) {
+            const dist = Math.hypot(node.x - other.x, node.y - other.y);
+            if (dist < 150) {
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(other.x, other.y);
+              ctx.strokeStyle = `rgba(0, 255, 255, ${1 - dist / 150})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        });
+      });
+      
+      requestAnimationFrame(draw);
+    }
+    
+    draw();
+  </script>
+</body>
+</html>

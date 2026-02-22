@@ -1,0 +1,90 @@
+@startuml
+title OSM Black Hole Fall - Memory Layout Class Diagram
+skinparam backgroundColor #0f0f1e
+skinparam defaultFontColor #ffffff
+skinparam classBackgroundColor #1a1a2e
+skinparam classBorderColor #4a90e2
+
+class "🎯 Instruction @ 0x555555555000" as I1 {
+    +opcode: push
+    +operand: rbp
+    +meme: Entry Point
+    +execute()
+}
+
+class "🏗️ Instruction @ 0x555555555001" as I2 {
+    +opcode: mov
+    +operands: rbp, rsp
+    +meme: Stack Setup
+    +execute()
+}
+
+class "📦 Instruction @ 0x555555555004" as I3 {
+    +opcode: sub
+    +operands: rsp, 32
+    +meme: Allocate
+    +execute()
+}
+
+class "🔍 Instruction @ 0x555555555008" as I4 {
+    +opcode: mov
+    +operands: rax, [rbp-8]
+    +meme: Load Node
+    +execute()
+}
+
+class "☢️ Function @ 0x555555555014" as F1 {
+    +name: calculate_hawking_radiation
+    +input: node_mass
+    +output: temperature
+    +formula: T = 1/(8πM)
+    +call()
+}
+
+class "🎨 Function @ 0x55555555501d" as F2 {
+    +name: render_shadow
+    +input: radiation
+    +output: ascii_frame
+    +symbols: ⭐✨💫⚫
+    +call()
+}
+
+class "💾 Memory @ 0x7f1234567890" as M1 {
+    +type: Heap
+    +content: OSM Node
+    +size: variable
+    +read()
+    +write()
+}
+
+class "📦 Memory @ 0x7fff87654300" as M2 {
+    +type: Stack
+    +content: Local variables
+    +size: 32 bytes
+    +push()
+    +pop()
+}
+
+class "🕳️ BlackHole" as BH {
+    +mass: 8.08e53
+    +radius: 1.62e54
+    +temperature: 4.95e-56 K
+    +emit_radiation()
+}
+
+I1 --> I2 : next
+I2 --> I3 : next
+I3 --> I4 : next
+I4 --> F1 : call
+F1 --> F2 : call
+
+I4 --> M1 : read
+F1 --> BH : query
+F2 --> M2 : write
+
+note right of BH
+  Monster group singularity
+  |M| = 2⁴⁶ × 3²⁰ × ... × 71
+end note
+
+@enduml

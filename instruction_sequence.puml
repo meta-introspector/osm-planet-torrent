@@ -1,0 +1,71 @@
+@startuml
+title OSM Black Hole Fall - Instruction Sequence
+skinparam backgroundColor #0f0f1e
+skinparam sequenceMessageAlign center
+skinparam defaultFontColor #ffffff
+
+actor "🌍 OSM Node" as Node
+participant "🎯 CPU" as CPU
+participant "💾 Memory" as Memory
+participant "🕳️ BlackHole" as BH
+participant "🎨 Renderer" as Render
+
+== Function Entry ==
+Node -> CPU: Call process_node()
+activate CPU
+
+CPU -> CPU: 🎯 Entry Point\n0x555555555000\npush rbp
+note right: Save base pointer
+
+CPU -> CPU: 🏗️ Stack Setup\n0x555555555001\nmov rbp, rsp
+note right: Set up stack frame
+
+CPU -> Memory: 📦 Allocate\n0x555555555004\nsub rsp, 32
+activate Memory
+Memory --> CPU: Stack space reserved
+note right: 32 bytes allocated
+
+== Node Processing ==
+CPU -> Memory: 🔍 Load Node\n0x555555555008\nmov rax, [rbp-8]
+Memory --> CPU: Node pointer
+note right: rax = 0x7f1234567890
+
+CPU -> CPU: ❓ Null Check\n0x55555555500c\ntest rax, rax
+note right: Check if node exists
+
+alt Node is NULL
+    CPU -> CPU: 🚫 Null Path\n0x555555555020\nxor eax, eax
+    note right: Return 0
+else Node is Valid
+    CPU -> BH: ☢️ Hawking Radiation\n0x555555555014\ncall calculate_hawking_radiation
+    activate BH
+    BH -> BH: Compute quantum emission
+    note right: T = 1/(8πM)
+    BH --> CPU: Radiation value
+    deactivate BH
+    note right: rax = 0x4e56789abcdef
+    
+    CPU -> Memory: 💾 Store Result\n0x555555555019\nmov [rbp-16], rax
+    note right: Save to stack
+    
+    CPU -> Render: 🎨 Render Shadow\n0x55555555501d\ncall render_shadow
+    activate Render
+    Render -> Render: Generate ASCII art
+    note right: ⭐ → ✨ → 💫 → ⚫
+    Render --> CPU: Shadow rendered
+    deactivate Render
+end
+
+== Function Exit ==
+CPU -> Memory: 🧹 Cleanup\n0x555555555022\nadd rsp, 32
+Memory --> CPU: Stack deallocated
+deactivate Memory
+
+CPU -> CPU: 🔙 Restore\n0x555555555026\npop rbp
+note right: Restore base pointer
+
+CPU -> Node: 👋 Exit\n0x555555555027\nret
+deactivate CPU
+note right: Return to caller
+
+@enduml

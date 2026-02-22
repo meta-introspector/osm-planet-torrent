@@ -4,8 +4,30 @@
     <title>OSM + Wikidata Interactive Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Quick Links -->
+    <style>
+        .quick-links {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .quick-links a {
+            color: #0ff;
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+        }
+        .quick-links a:hover { color: #fff; }
+    </style>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/parquetjs@0.11.2/browser/parquet.min.js"></script>
     <style>
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         #map { height: 75vh; }
@@ -21,6 +43,14 @@
             border-radius: 8px; 
             margin: 10px 0;
             font-size: 13px;
+        }
+        .fold-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            font-size: 18px;
+            margin-left: 5px;
         }
         .query-controls { margin: 15px 0; }
         .query-controls input { 
@@ -54,14 +84,19 @@
     </style>
 </head>
 <body>
+    <div class="quick-links">
+        <a href="monster-osm-browser.html">🎭 Monster Browser</a>
+        <a href="/">🗺️ Map View</a>
+    </div>
+    
     <div id="map"></div>
     <div class="info-panel">
         <h2>🗺️ OSM + Wikidata Interactive Map</h2>
         <div class="stats">
-            <strong>📦 Ramanujan Tile System:</strong> 71 (lat) × 59 (lon) × 47 (level) = 196,883 tiles<br>
-            <strong>📍 Wikidata Locations:</strong> <span id="location-count">Loading...</span> places loaded<br>
-            <strong>💾 Live Data:</strong> <a href="https://archive.org/details/osm-ramanujan-tiles-sample" style="color: #fff;">Archive.org</a><br>
-            <strong>⚡ Query:</strong> Click map or enter coordinates to download your tile (~4 KB)
+            <strong>📦 Monster Harmonic Tile System:</strong> Adaptive splitting with Monster primes (71×59×47×41×31)<br>
+            <strong>📍 OSM Nodes:</strong> <span id="node-count">~1M</span> nodes | <span id="tile-count">944</span> tiles (48 MB)<br>
+            <strong>💾 Format:</strong> Parquet with 21 OSM attributes (admin_level, place, highway, amenity, etc.)<br>
+            <strong>⚡ Query:</strong> Click map to find 5° geographic chunk (non-overlapping bboxes)
         </div>
         <div class="query-controls">
             <input type="number" id="lat" placeholder="Latitude" step="0.0001">
@@ -85,12 +120,14 @@
         
         var markers = [];
         
-        // Calculate Ramanujan tile
+        // Calculate geographic tile (lat mod 71, lon mod 59)
         function calculateTile(lat, lon) {
-            const tile_lat = Math.floor(((lat + 90) * 100) % 71);
-            const tile_lon = Math.floor(((lon + 180) * 100) % 59);
-            const tile_level = 0; // admin_level will be used later
-            return { tile_lat, tile_lon, tile_level };
+            const tile_lat = Math.floor(lat) % 71;
+            const tile_lon = Math.floor(lon) % 59;
+            return { 
+                tile_lat: tile_lat < 0 ? tile_lat + 71 : tile_lat,
+                tile_lon: tile_lon < 0 ? tile_lon + 59 : tile_lon
+            };
         }
         
         // Query location
@@ -103,19 +140,24 @@
                 return;
             }
             
-            const tile = calculateTile(lat, lon);
-            const tileFile = `tile_${String(tile.tile_lat).padStart(2, '0')}_${String(tile.tile_lon).padStart(2, '0')}_${String(tile.tile_level).padStart(2, '0')}.csv`;
-            const url = `https://archive.org/download/osm-ramanujan-tiles-sample/${tileFile}`;
+            // Find 5-degree chunk
+            const chunk_lat = Math.floor(lat / 5) * 5;
+            const chunk_lon = Math.floor(lon / 5) * 5;
+            const lat_str = (chunk_lat >= 0 ? '+' : '') + String(chunk_lat).padStart(3, '0');
+            const lon_str = (chunk_lon >= 0 ? '+' : '') + String(chunk_lon).padStart(3, '0');
+            const tile_name = `lat${lat_str}_lon${lon_str}`;
             
             document.getElementById('result').innerHTML = `
                 <strong>📍 Location:</strong> ${lat.toFixed(4)}, ${lon.toFixed(4)}<br>
-                <strong>🎯 Tile:</strong> (${tile.tile_lat}, ${tile.tile_lon}, ${tile.tile_level})<br>
-                <strong>📥 Download:</strong> <a href="${url}" style="color: #fff;" target="_blank">${tileFile}</a>
+                <strong>🗂️ Chunk:</strong> ${tile_name}<br>
+                <strong>📦 Download:</strong> <a href="data/${tile_name}.parquet" download>tiles/data/${tile_name}.parquet</a><br>
+                <br>
+                <strong>Query:</strong> All nodes in 5° chunk [${chunk_lat}, ${chunk_lat+5}) × [${chunk_lon}, ${chunk_lon+5})
             `;
             
             // Add marker
             L.marker([lat, lon]).addTo(map)
-                .bindPopup(`<div class="marker-popup"><strong>Query Point</strong><br>Tile: (${tile.tile_lat}, ${tile.tile_lon}, ${tile.tile_level})</div>`)
+                .bindPopup(`<div class="marker-popup"><strong>Query Point</strong><br>Tile: (${tile.tile_lat}, ${tile.tile_lon})</div>`)
                 .openPopup();
             
             map.setView([lat, lon], 10);
@@ -147,42 +189,78 @@
             queryLocation();
         });
         
-        // Load wikidata locations
-        fetch('wikidata-locations.json')
+        // Load tile statistics
+        fetch('tile-stats.json')
             .then(r => r.json())
-            .then(locations => {
-                document.getElementById('location-count').textContent = locations.length;
+            .then(stats => {
+                console.log(`✅ Loaded ${stats.length} tile statistics`);
                 
-                locations.forEach(function(loc) {
-                    const marker = L.circleMarker([loc.lat, loc.lon], {
-                        radius: 6,
-                        fillColor: '#ff6b6b',
-                        color: '#fff',
+                // Draw tile bounding boxes
+                stats.forEach(tile => {
+                    const bounds = [[tile.min_lat, tile.min_lon], [tile.max_lat, tile.max_lon]];
+                    const density = tile.count;
+                    const color = density > 1000 ? '#ff0000' : density > 100 ? '#ff9900' : '#00ff00';
+                    
+                    const rect = L.rectangle(bounds, {
+                        color: color,
                         weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
+                        fillOpacity: 0.2
                     }).addTo(map);
                     
-                    marker.bindPopup(`
-                        <div class="marker-popup">
-                            <strong>${loc.name}</strong><br>
-                            <span class="tile-info">
-                                Wikidata: <a href="https://www.wikidata.org/wiki/${loc.wikidata}" target="_blank">${loc.wikidata}</a><br>
-                                Coords: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}<br>
-                                Tile: (${loc.tile_lat}, ${loc.tile_lon}, ${loc.tile_level})
-                            </span>
-                        </div>
-                    `);
-                    
-                    markers.push(marker);
+                    rect.on('click', async function(e) {
+                        L.DomEvent.stopPropagation(e);
+                        
+                        rect.bindPopup(`<strong>${tile.name}</strong><br>Loading...`).openPopup();
+                        
+                        try {
+                            const response = await fetch(`tiles_json/${tile.name}.json`);
+                            const data = await response.json();
+                            
+                            // Clear existing node markers
+                            map.eachLayer(layer => {
+                                if (layer.options && layer.options.className === 'node-marker') {
+                                    map.removeLayer(layer);
+                                }
+                            });
+                            
+                            // Add node markers
+                            data.nodes.forEach(node => {
+                                L.circleMarker([node.lat, node.lon], {
+                                    radius: 4,
+                                    fillColor: '#667eea',
+                                    color: '#fff',
+                                    weight: 1,
+                                    fillOpacity: 0.8,
+                                    className: 'node-marker'
+                                }).addTo(map).bindPopup(`
+                                    <strong>${node.name || 'Unnamed'}</strong><br>
+                                    ${node.place ? 'Place: ' + node.place + '<br>' : ''}
+                                    ${node.admin_level ? 'Admin: ' + node.admin_level + '<br>' : ''}
+                                    Lat: ${node.lat.toFixed(4)}, Lon: ${node.lon.toFixed(4)}
+                                `);
+                            });
+                            
+                            rect.bindPopup(`
+                                <strong>${tile.name}</strong><br>
+                                Showing ${data.nodes.length} of ${data.total} nodes<br>
+                                <a href="data/${tile.name}.parquet" download>📥 Download Parquet</a>
+                            `).openPopup();
+                        } catch(err) {
+                            console.error('Load error:', err);
+                            rect.bindPopup(`
+                                <strong>${tile.name}</strong><br>
+                                Nodes: ${density}<br>
+                                <a href="data/${tile.name}.parquet" download>📥 Download</a>
+                            `).openPopup();
+                        }
+                    });
                 });
-                
-                console.log(`✅ Loaded ${locations.length} Wikidata locations`);
             })
-            .catch(err => {
-                console.error('Error loading locations:', err);
-                document.getElementById('location-count').textContent = 'Error loading';
-            });
+            .catch(err => console.error('Error loading tile stats:', err));
+        
+        console.log('✅ OSM Geographic Tile Browser Ready');
+        console.log('📦 Tile format: lat mod 71, lon mod 59, structure mod 47');
+        console.log('💾 120 MB Parquet tiles with 21 OSM attributes');
     </script>
 </body>
 </html>

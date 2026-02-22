@@ -1,0 +1,67 @@
+@startuml
+title OSM Black Hole Fall - Component Diagram
+skinparam backgroundColor #0f0f1e
+skinparam defaultFontColor #ffffff
+skinparam componentBackgroundColor #1a1a2e
+skinparam componentBorderColor #4a90e2
+
+package "Memory Space" {
+    component "🎯 Code Segment\n0x5555..." as Code
+    component "📦 Stack\n0x7fff..." as Stack
+    component "🗄️ Heap\n0x7f..." as Heap
+}
+
+package "CPU Registers" {
+    component "RAX\nAccumulator" as RAX
+    component "RBX\n42 (Answer)" as RBX
+    component "RCX\nCounter" as RCX
+    component "RDX\nData (5)" as RDX
+    component "RBP\nBase Pointer" as RBP
+    component "RSP\nStack Pointer" as RSP
+}
+
+package "Functions" {
+    component "☢️ calculate_hawking_radiation\n0x555555555014" as Hawking
+    component "🎨 render_shadow\n0x55555555501d" as Shadow
+}
+
+package "External Systems" {
+    component "🕳️ Monster Black Hole\nM = 8.08×10⁵³" as Monster
+    component "🌐 Asciinema\nRecording" as Asciinema
+}
+
+Code --> RAX : Load instructions
+Code --> Stack : Push/Pop
+Stack --> RBP : Base reference
+Stack --> RSP : Top reference
+
+RAX --> Heap : Load node pointer
+Heap --> RAX : Node data
+
+Hawking --> Monster : Query mass
+Monster --> Hawking : Radiation value
+Hawking --> RAX : Return result
+
+Shadow --> RAX : Read radiation
+Shadow --> Asciinema : Write frame
+
+RBX --> RBX : Always 42
+RCX --> Heap : Stack pointer
+RDX --> RDX : Always 5
+
+note right of Monster
+  Schwarzschild radius:
+  r_s = 2GM/c²
+  
+  Event horizon at τ = i∞
+end note
+
+note right of Asciinema
+  Frame format:
+  {
+    "time": eons,
+    "data": "⭐ → ⚫"
+  }
+end note
+
+@enduml

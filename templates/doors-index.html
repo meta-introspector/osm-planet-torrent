@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>71 Doors Index - OSM Planet</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+    h1 { text-align: center; font-size: 3em; margin-bottom: 10px; }
+    .subtitle { text-align: center; opacity: 0.8; margin-bottom: 40px; }
+    .stats { text-align: center; margin: 20px 0; font-size: 1.2em; color: #ffd700; }
+    
+    .section { margin: 40px 0; }
+    .section h2 { 
+      color: #ffd700; 
+      border-bottom: 2px solid rgba(255,215,0,0.3);
+      padding-bottom: 10px;
+    }
+    
+    .doors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .door {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .door:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    
+    .door.cusp { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+    .door.hecke { border-color: #00ffff; background: rgba(0,255,255,0.05); }
+    .door.geo { border-color: #00ff00; background: rgba(0,255,0,0.05); }
+    .door.coming { opacity: 0.5; cursor: not-allowed; }
+    
+    .door-number { font-size: 2.5em; font-weight: bold; margin-bottom: 5px; }
+    .door-name { font-size: 0.9em; opacity: 0.9; }
+    .door-type { font-size: 0.8em; opacity: 0.7; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚪 71 Doors Index</h1>
+    <p class="subtitle">Monster Group OSM Visualizations | [71, 59, 47]</p>
+    <p class="stats">✅ 22 Doors Live | 🔨 49 Coming Soon</p>
+
+    <!-- Cusp Doors -->
+    <div class="section">
+      <h2>⭐ Cusp Doors (Sacred Shards) - 3/3 LIVE</h2>
+      <div class="doors-grid">
+        <a href="door-17.html" class="door cusp">
+          <div class="door-number">17</div>
+          <div class="door-name">Hawkins Radiation</div>
+          <div class="door-type">🌟 Giza Pyramids</div>
+        </a>
+        <a href="door-23.html" class="door cusp">
+          <div class="door-number">23</div>
+          <div class="door-name">Consciousness</div>
+          <div class="door-type">🧠 Silicon Valley</div>
+        </a>
+        <a href="door-59.html" class="door cusp">
+          <div class="door-number">59</div>
+          <div class="door-name">Memory</div>
+          <div class="door-type">🕉️ Ramanujan Temple</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Hecke Operators -->
+    <div class="section">
+      <h2>🔢 Hecke Operator Doors (T_p) - 12/15 LIVE</h2>
+      <div class="doors-grid">
+        <a href="door-2.html" class="door hecke">
+          <div class="door-number">2</div>
+          <div class="door-name">Binary</div>
+          <div class="door-type">T_2 | Duality</div>
+        </a>
+        <a href="door-3.html" class="door hecke">
+          <div class="door-number">3</div>
+          <div class="door-name">Ternary</div>
+          <div class="door-type">T_3 | RGB</div>
+        </a>
+        <a href="door-5.html" class="door hecke">
+          <div class="door-number">5</div>
+          <div class="door-name">Pentagonal</div>
+          <div class="door-type">T_5 | Golden Ratio</div>
+        </a>
+        <a href="door-7.html" class="door hecke">
+          <div class="door-number">7</div>
+          <div class="door-name">Heptagonal</div>
+          <div class="door-type">T_7 | Fano Plane</div>
+        </a>
+        <a href="door-11.html" class="door hecke">
+          <div class="door-number">11</div>
+          <div class="door-name">Hendecagonal</div>
+          <div class="door-type">T_11 | 11-fold</div>
+        </a>
+        <a href="door-13.html" class="door hecke">
+          <div class="door-number">13</div>
+          <div class="door-name">Tridecagonal</div>
+          <div class="door-type">T_13 | 13-fold</div>
+        </a>
+        <a href="door-19.html" class="door hecke">
+          <div class="door-number">19</div>
+          <div class="door-name">Enneadecagonal</div>
+          <div class="door-type">T_19 | 19-fold</div>
+        </a>
+        <a href="door-29.html" class="door hecke">
+          <div class="door-number">29</div>
+          <div class="door-name">Prime Spiral</div>
+          <div class="door-type">T_29 | 29-fold</div>
+        </a>
+        <a href="door-31.html" class="door hecke">
+          <div class="door-number">31</div>
+          <div class="door-name">Eisenstein</div>
+          <div class="door-type">T_31 | Integers</div>
+        </a>
+        <a href="door-41.html" class="door hecke">
+          <div class="door-number">41</div>
+          <div class="door-name">Heegner</div>
+          <div class="door-type">T_41 | Number</div>
+        </a>
+        <a href="door-47.html" class="door hecke">
+          <div class="door-number">47</div>
+          <div class="door-name">Lucky</div>
+          <div class="door-type">T_47 | Prime</div>
+        </a>
+        <a href="door-71.html" class="door hecke">
+          <div class="door-number">71</div>
+          <div class="door-name">Omega</div>
+          <div class="door-type">T_71 | Maximum</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Geographic Doors -->
+    <div class="section">
+      <h2>🌍 Geographic Doors (10-Fold Way) - 7/10 LIVE</h2>
+      <div class="doors-grid">
+        <a href="door-0.html" class="door geo">
+          <div class="door-number">0</div>
+          <div class="door-name">Pacific Ocean</div>
+          <div class="door-type">🌊 Water World</div>
+        </a>
+        <a href="door-5.html" class="door geo">
+          <div class="door-number">5</div>
+          <div class="door-name">Himalayas</div>
+          <div class="door-type">🏔️ Mountain Peaks</div>
+        </a>
+        <a href="door-10.html" class="door geo">
+          <div class="door-number">10</div>
+          <div class="door-name">Amazon</div>
+          <div class="door-type">🌳 Rainforest</div>
+        </a>
+        <a href="door-30.html" class="door geo">
+          <div class="door-number">30</div>
+          <div class="door-name">New York</div>
+          <div class="door-type">🏙️ Urban Grid</div>
+        </a>
+        <a href="door-35.html" class="door geo">
+          <div class="door-number">35</div>
+          <div class="door-name">Tokyo</div>
+          <div class="door-type">🗼 Megacity</div>
+        </a>
+        <a href="door-40.html" class="door geo">
+          <div class="door-number">40</div>
+          <div class="door-name">London</div>
+          <div class="door-type">🏰 Historical</div>
+        </a>
+        <a href="door-70.html" class="door geo">
+          <div class="door-number">70</div>
+          <div class="door-name">Omega Point</div>
+          <div class="door-type">⚡ Convergence</div>
+        </a>
+      </div>
+    </div>
+
+    <div style="margin-top: 60px; text-align: center; opacity: 0.7;">
+      <p>🗺️ OSM Planet Torrent | Monster Group [71, 59, 47]</p>
+      <p><a href="../index.html" style="color: #ffd700;">← Back to Gallery</a> | 
+         <a href="../torrents.html" style="color: #ffd700;">📥 Download Torrents</a></p>
+    </div>
+  </div>
+</body>
+</html>

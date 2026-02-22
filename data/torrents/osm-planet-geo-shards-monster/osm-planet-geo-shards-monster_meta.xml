@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <identifier>osm-planet-geo-shards-monster</identifier>
+  <creator>Meta-Introspector</creator>
+  <date>2026-02-22</date>
+  <description>Geographic sharding of OSM planet data using Monster Group symmetries [71,59,47]</description>
+  <licenseurl>https://opendatacommons.org/licenses/odbl/1-0/</licenseurl>
+  <subject>OpenStreetMap</subject>
+  <title>OSM Planet Torrent - Geographic Shards (Monster Group)</title>
+  <subject>Monster Group</subject>
+  <subject>Geographic Information Systems</subject>
+  <uploader>jmikedupont2@gmail.com</uploader>
+  <mediatype>data</mediatype>
+  <collection>opensource</collection>
+  <publicdate>2026-02-22 14:33:27</publicdate>
+  <addeddate>2026-02-22 14:33:27</addeddate>
+  <curation>[curator]validator@archive.org[/curator][date]20260222143929[/date][comment]checked for malware[/comment]</curation>
+</metadata>

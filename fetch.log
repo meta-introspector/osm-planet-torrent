@@ -1,0 +1,241 @@
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+   Compiling osm-planet-torrent v0.1.0 (/home/mdupont/projects/osm-planet-torrent)
+warning: unused import: `std::fs::File`
+ --> src/chunk_writer.rs:4:5
+  |
+4 | use std::fs::File;
+  |     ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `file_id`
+  --> src/print_storage.rs:56:26
+   |
+56 |     fn pwrite_all(&self, file_id: usize, offset: u64, buf: &[u8]) -> Result<()> {
+   |                          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_id`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: for loop over a `Result`. This is more readably written as an `if let` statement
+  --> src/print_storage.rs:24:24
+   |
+24 |           for element in reader.par_map_reduce(
+   |  ________________________^
+25 | |             |element| {
+26 | |                 let mut coords = Vec::new();
+27 | |                 match element {
+...  |
+36 | |             |mut a, b| { a.extend(b); a }
+37 | |         ) {
+   | |_________^
+   |
+   = note: `#[warn(for_loops_over_fallibles)]` on by default
+help: to check pattern in a loop use `while let`
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         while let Ok(element) = reader.par_map_reduce(
+   |
+help: consider using `if let` to clear intent
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         if let Ok(element) = reader.par_map_reduce(
+   |
+
+warning: `osm-planet-torrent` (lib) generated 3 warnings (run `cargo fix --lib -p osm-planet-torrent` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.20s
+     Running `target/debug/fetch-piece 13668`
+🔍 Phase 2: Fetching piece 13668 with PrintStorage...
+🔗 Downloading piece 13668 only...
+🔧 Building spatial index as chunks arrive...
+   Target piece: 13668 (will be highlighted)
+   Saving all chunks to ./chunks/
+   Writing spatial index to spatial_index.jsonl
+📦 Torrent: Some("planet-260209.osm.pbf")
+   Total pieces: 21763
+   Piece length: 4096 KB
+   Target piece: 13668
+
+⏳ Waiting for torrent to start...
+⏳ Waiting for piece 13668 to download...
+....📊 initializing: 21.94% (18.6Gi / 85.0Gi)
+.....📊 initializing: 37.70% (32.0Gi / 85.0Gi)
+.....📊 initializing: 53.33% (45.3Gi / 85.0Gi)
+.....📊 initializing: 68.73% (58.4Gi / 85.0Gi)
+.....📊 initializing: 84.26% (71.6Gi / 85.0Gi)
+.....📊 initializing: 99.84% (84.8Gi / 85.0Gi)
+.📝 Piece 0: offset=0, size=16384 bytes
+📝 Piece 0: offset=16384, size=0 bytes
+📝 Piece 0: offset=16384, size=13358 bytes
+📝 Piece 0: offset=29742, size=3026 bytes
+📝 Piece 0: offset=32768, size=16384 bytes
+📝 Piece 0: offset=49152, size=0 bytes
+📝 Piece 21762: offset=91276443648, size=16384 bytes
+📝 Piece 21762: offset=91276460032, size=0 bytes
+📝 Piece 21762: offset=91276460032, size=13334 bytes
+📝 Piece 21762: offset=91276473366, size=3050 bytes
+📝 Piece 0: offset=49152, size=13332 bytes
+📝 Piece 0: offset=62484, size=3052 bytes
+📝 Piece 0: offset=65536, size=16384 bytes
+📝 Piece 0: offset=81920, size=0 bytes
+📝 Piece 0: offset=81920, size=13306 bytes
+📝 Piece 0: offset=95226, size=3078 bytes
+📝 Piece 0: offset=98304, size=16384 bytes
+📝 Piece 0: offset=114688, size=0 bytes
+📝 Piece 0: offset=114688, size=13280 bytes
+📝 Piece 0: offset=127968, size=3104 bytes
+📝 Piece 21762: offset=91276476416, size=16384 bytes
+📝 Piece 21762: offset=91276492800, size=0 bytes
+📝 Piece 0: offset=131072, size=16384 bytes
+📝 Piece 0: offset=147456, size=0 bytes
+📝 Piece 21762: offset=91276492800, size=13308 bytes
+📝 Piece 21762: offset=91276506108, size=3076 bytes
+📝 Piece 0: offset=147456, size=13254 bytes
+📝 Piece 0: offset=160710, size=3130 bytes
+📝 Piece 21762: offset=91276509184, size=16384 bytes
+📝 Piece 21762: offset=91276525568, size=0 bytes
+📝 Piece 21762: offset=91276525568, size=13282 bytes
+📝 Piece 21762: offset=91276538850, size=3102 bytes
+📝 Piece 0: offset=163840, size=16384 bytes
+📝 Piece 0: offset=180224, size=0 bytes
+📝 Piece 0: offset=180224, size=13228 bytes
+📝 Piece 0: offset=193452, size=3156 bytes
+📝 Piece 0: offset=196608, size=16384 bytes
+📝 Piece 0: offset=212992, size=0 bytes
+📝 Piece 0: offset=212992, size=13202 bytes
+📝 Piece 0: offset=226194, size=3182 bytes
+📝 Piece 21762: offset=91276541952, size=16384 bytes
+📝 Piece 21762: offset=91276558336, size=0 bytes
+📝 Piece 21762: offset=91276558336, size=13256 bytes
+📝 Piece 21762: offset=91276571592, size=3128 bytes
+📝 Piece 0: offset=229376, size=16384 bytes
+📝 Piece 0: offset=245760, size=0 bytes
+📝 Piece 0: offset=245760, size=13176 bytes
+📝 Piece 0: offset=258936, size=3208 bytes
+📝 Piece 0: offset=262144, size=16384 bytes
+📝 Piece 0: offset=278528, size=0 bytes
+📝 Piece 0: offset=278528, size=13150 bytes
+📝 Piece 0: offset=291678, size=3234 bytes
+📝 Piece 0: offset=294912, size=16384 bytes
+📝 Piece 0: offset=311296, size=0 bytes
+📝 Piece 21762: offset=91276574720, size=16384 bytes
+📝 Piece 21762: offset=91276591104, size=0 bytes
+📝 Piece 21762: offset=91276591104, size=13230 bytes
+📝 Piece 21762: offset=91276604334, size=3154 bytes
+📝 Piece 21762: offset=91276607488, size=16384 bytes
+📝 Piece 21762: offset=91276623872, size=0 bytes
+📝 Piece 21762: offset=91276623872, size=13204 bytes
+📝 Piece 0: offset=311296, size=13124 bytes
+📝 Piece 0: offset=324420, size=3260 bytes
+📝 Piece 21762: offset=91276637076, size=3180 bytes
+📝 Piece 0: offset=327680, size=16384 bytes
+📝 Piece 0: offset=344064, size=0 bytes
+📝 Piece 0: offset=344064, size=13098 bytes
+📝 Piece 0: offset=357162, size=3286 bytes
+📝 Piece 0: offset=360448, size=16384 bytes
+📝 Piece 0: offset=376832, size=0 bytes
+📝 Piece 0: offset=376832, size=13072 bytes
+📝 Piece 0: offset=389904, size=3312 bytes
+📝 Piece 0: offset=393216, size=16384 bytes
+📝 Piece 0: offset=409600, size=0 bytes
+📝 Piece 0: offset=409600, size=13046 bytes
+📝 Piece 0: offset=422646, size=3338 bytes
+📝 Piece 0: offset=425984, size=16384 bytes
+📝 Piece 0: offset=442368, size=0 bytes
+📝 Piece 21762: offset=91276640256, size=16384 bytes
+📝 Piece 21762: offset=91276656640, size=0 bytes
+📝 Piece 0: offset=442368, size=13020 bytes
+📝 Piece 0: offset=455388, size=3364 bytes
+📝 Piece 0: offset=458752, size=16384 bytes
+📝 Piece 0: offset=475136, size=0 bytes
+📝 Piece 21762: offset=91276656640, size=13178 bytes
+📝 Piece 21762: offset=91276669818, size=3206 bytes
+📝 Piece 21762: offset=91276673024, size=16384 bytes
+📝 Piece 21762: offset=91276689408, size=0 bytes
+📝 Piece 21762: offset=91276689408, size=13152 bytes
+📝 Piece 21762: offset=91276702560, size=3232 bytes
+📝 Piece 0: offset=475136, size=12994 bytes
+📝 Piece 0: offset=488130, size=3390 bytes
+📝 Piece 21762: offset=91276705792, size=16384 bytes
+📝 Piece 0: offset=491520, size=16384 bytes
+📝 Piece 21762: offset=91276722176, size=0 bytes
+📝 Piece 0: offset=507904, size=0 bytes
+📝 Piece 0: offset=507904, size=12968 bytes
+📝 Piece 0: offset=520872, size=3416 bytes
+📝 Piece 0: offset=524288, size=16384 bytes
+📝 Piece 0: offset=540672, size=0 bytes
+📝 Piece 0: offset=540672, size=12942 bytes
+📝 Piece 0: offset=553614, size=3442 bytes
+📝 Piece 0: offset=557056, size=16384 bytes
+📝 Piece 0: offset=573440, size=0 bytes
+📝 Piece 0: offset=573440, size=12916 bytes
+📝 Piece 0: offset=586356, size=3468 bytes
+📝 Piece 0: offset=589824, size=16384 bytes
+📝 Piece 0: offset=606208, size=0 bytes
+📝 Piece 21762: offset=91276722176, size=13126 bytes
+📝 Piece 21762: offset=91276735302, size=3258 bytes
+📝 Piece 21762: offset=91276738560, size=16384 bytes
+📝 Piece 21762: offset=91276754944, size=0 bytes
+📝 Piece 21762: offset=91276754944, size=13100 bytes
+📝 Piece 21762: offset=91276768044, size=3284 bytes
+📝 Piece 0: offset=606208, size=12890 bytes
+📝 Piece 21762: offset=91276771328, size=16384 bytes
+📝 Piece 0: offset=619098, size=3494 bytes
+📝 Piece 21762: offset=91276787712, size=0 bytes
+📝 Piece 21762: offset=91276787712, size=13074 bytes
+📝 Piece 21762: offset=91276800786, size=3310 bytes
+📝 Piece 21762: offset=91276804096, size=16384 bytes
+📝 Piece 21762: offset=91276820480, size=0 bytes
+📝 Piece 21762: offset=91276820480, size=13048 bytes
+📝 Piece 21762: offset=91276833528, size=3336 bytes
+📝 Piece 21762: offset=91276836864, size=16384 bytes
+📝 Piece 21762: offset=91276853248, size=0 bytes
+📝 Piece 0: offset=622592, size=16384 bytes
+📝 Piece 0: offset=638976, size=0 bytes
+📝 Piece 0: offset=638976, size=12864 bytes
+📝 Piece 0: offset=651840, size=3520 bytes
+📝 Piece 0: offset=655360, size=16384 bytes
+📝 Piece 0: offset=671744, size=0 bytes
+📝 Piece 0: offset=671744, size=12838 bytes
+📝 Piece 0: offset=684582, size=3546 bytes
+📝 Piece 0: offset=688128, size=16384 bytes
+📝 Piece 0: offset=704512, size=0 bytes
+📝 Piece 0: offset=704512, size=12812 bytes
+📝 Piece 0: offset=717324, size=3572 bytes
+📝 Piece 21762: offset=91276853248, size=13022 bytes
+📝 Piece 21762: offset=91276866270, size=3362 bytes
+📝 Piece 0: offset=720896, size=16384 bytes
+📝 Piece 0: offset=737280, size=0 bytes
+📝 Piece 0: offset=737280, size=12786 bytes
+📝 Piece 0: offset=750066, size=3598 bytes
+📝 Piece 0: offset=753664, size=16384 bytes
+📝 Piece 0: offset=770048, size=0 bytes
+📝 Piece 0: offset=770048, size=12760 bytes
+📝 Piece 0: offset=782808, size=3624 bytes
+📝 Piece 0: offset=786432, size=16384 bytes
+📝 Piece 0: offset=802816, size=0 bytes
+📝 Piece 0: offset=802816, size=12734 bytes
+📝 Piece 0: offset=815550, size=3650 bytes
+📝 Piece 0: offset=819200, size=16384 bytes
+📝 Piece 0: offset=835584, size=0 bytes
+📝 Piece 0: offset=835584, size=12708 bytes
+📝 Piece 0: offset=848292, size=3676 bytes
+📝 Piece 0: offset=851968, size=16384 bytes
+📝 Piece 0: offset=868352, size=0 bytes
+📝 Piece 0: offset=868352, size=12682 bytes
+📝 Piece 0: offset=881034, size=3702 bytes
+📝 Piece 0: offset=884736, size=16384 bytes
+📝 Piece 0: offset=901120, size=0 bytes
+📝 Piece 0: offset=901120, size=12656 bytes
+📝 Piece 0: offset=913776, size=3728 bytes
+📝 Piece 0: offset=917504, size=16384 bytes
+📝 Piece 0: offset=933888, size=0 bytes
+📝 Piece 21762: offset=91276869632, size=16384 bytes
+📝 Piece 21762: offset=91276886016, size=0 bytes
+📝 Piece 21762: offset=91276886016, size=12996 bytes
+📝 Piece 21762: offset=91276899012, size=3388 bytes
+📝 Piece 21762: offset=91276902400, size=16384 bytes
+📝 Piece 21762: offset=91276918784, size=0 bytes

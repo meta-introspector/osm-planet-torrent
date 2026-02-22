@@ -1,0 +1,28 @@
+[
+  {
+    "piece_id": 1,
+    "min_node_id": 20933784,
+    "max_node_id": 21458266,
+    "min_lat": -35.3963,
+    "max_lat": 69.8251,
+    "min_lon": -157.9457,
+    "max_lon": 153.5761,
+    "node_count": 524482,
+    "wikidata_count": 47,
+    "monster_lat_block": 42,
+    "monster_lon_block": 29
+  },
+  {
+    "piece_id": 4,
+    "min_node_id": 20933784,
+    "max_node_id": 21458266,
+    "min_lat": -35.3963,
+    "max_lat": 69.8251,
+    "min_lon": -157.9457,
+    "max_lon": 153.5761,
+    "node_count": 524482,
+    "wikidata_count": 47,
+    "monster_lat_block": 42,
+    "monster_lon_block": 29
+  }
+]

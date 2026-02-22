@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door 59 - Memory</title>
+  <style>
+    body { margin: 0; background: #1a0033; overflow: hidden; }
+    canvas { display: block; }
+    .info { 
+      position: absolute; top: 20px; left: 20px; color: #ff00ff; 
+      font-family: monospace; z-index: 10; 
+    }
+    .formula {
+      position: absolute; bottom: 20px; left: 20px;
+      color: #ff00ff; font-family: monospace; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door 59 - Memory</h2>
+    <p>Cusp at Ramanujan Temple [13.0067°N, 80.2206°E]</p>
+    <p>Prime: 59 | Symmetry: Modular Forms</p>
+    <p><a href="index.html" style="color: #ff00ff;">← Back to Doors</a></p>
+  </div>
+  <div class="formula">
+    τ(59) = -52,843,168 | τ(71) ≡ -5 (mod 71)
+  </div>
+  <canvas id="memory"></canvas>
+  <script>
+    const canvas = document.getElementById('memory');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    let time = 0;
+    
+    // Ramanujan tau function visualization
+    function drawModularForm() {
+      ctx.fillStyle = 'rgba(26, 0, 51, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw 59 petals (modular form)
+      for (let i = 0; i < 59; i++) {
+        const angle = (i / 59) * Math.PI * 2 + time * 0.001;
+        const r = 150 + Math.sin(time * 0.01 + i * 0.1) * 50;
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        
+        // Petal
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        for (let t = 0; t <= 1; t += 0.1) {
+          const x = r * t * Math.cos(t * Math.PI);
+          const y = r * t * Math.sin(t * Math.PI);
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `hsl(${(i * 360 / 59 + time * 0.1) % 360}, 100%, 50%)`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.restore();
+      }
+      
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff00ff';
+      ctx.fill();
+      
+      time++;
+      requestAnimationFrame(drawModularForm);
+    }
+    
+    drawModularForm();
+  </script>
+</body>
+</html>

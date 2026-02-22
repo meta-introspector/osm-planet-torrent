@@ -1,7 +1,28 @@
-userdir/
-!userdir/ramanujan.json
+# Temp files
+*~
+\#*\#
+*.log
+*.log~
+
+# Dataset directories (separate repos)
+chunks/
+geo_shards/
+index/
+monster_shards/
+ramanujan_tiles/
+shards/
+tiles/
+tiles-T*/
+
+# Downloaded data
+data/torrents/
+piece_*.pbf
+*.bin
+
+# Build artifacts
 target/
 result
-*.torrent
-*-location-index.json
-secrets/
+result-*
+
+# Nix
+.direnv/

@@ -1,0 +1,13 @@
+% MiniZinc Data: Initial OODA state
+% Starting conditions for Monster OSM pipeline
+
+% Initial quality and risk
+array[1..20] of int: initial_quality = [
+  50, 55, 60, 65, 70, 75, 80, 82, 85, 87,
+  89, 91, 92, 93, 94, 95, 96, 97, 98, 99
+];
+
+array[1..20] of int: initial_risk = [
+  80, 75, 70, 65, 60, 55, 50, 45, 40, 35,
+  30, 25, 22, 20, 18, 15, 12, 10, 8, 5
+];

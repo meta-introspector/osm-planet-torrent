@@ -1,86 +1,166 @@
 {
-  description = "OSM/Wikipedia torrent → IPFS → Solana witness";
+  description = "OSM Planet - 71 Doors Gallery";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    sops-nix.url = "github:Mic92/sops-nix";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, sops-nix, rust-overlay }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ rust-overlay.overlays.default ];
-      };
-      
-      # Security shard: mod 23 (Paxos witness prime)
-      securityShard = 23;
-      
-    in {
-      packages.${system} = {
-        osm-torrent-client = pkgs.rustPlatform.buildRustPackage {
-          pname = "osm-planet-torrent";
-          version = "0.1.0";
-          src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
-          
-          nativeBuildInputs = [ 
-            pkgs.pkg-config 
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        
+        # Monster primes for 71 doors
+        monsterPrimes = [2 3 5 7 11 13 17 19 23 29 31 41 47 59 71];
+        
+      in
+      {
+        packages = {
+          # Download all torrents
+          download-all = pkgs.writeShellScriptBin "download-all" ''
+            set -euo pipefail
+            mkdir -p data/torrents
+            
+            DATASETS=(
+              "geo-shards:osm-planet-geo-shards-monster"
+              "monster-shards:osm-planet-monster-shards-monster"
+              "ramanujan:osm-planet-ramanujan_tiles-monster"
+            )
+            
+            for dataset in "''${DATASETS[@]}"; do
+              IFS=: read -r name id <<< "$dataset"
+              echo "📥 $name..."
+              
+              cd data/torrents
+              ${pkgs.wget}/bin/wget -q \
+                "https://archive.org/download/$id/''${id}_archive.torrent" \
+                -O "$name.torrent"
+              
+              ${pkgs.aria2}/bin/aria2c \
+                --seed-time=0 \
+                --max-overall-download-limit=2M \
+                --select-file=1-10 \
+                "$name.torrent" || true
+              
+              cd ../..
+            done
+            
+            echo "✅ Downloaded data for 71 doors"
+          '';
+
+          # Build 71 doors gallery
+          build-gallery = pkgs.writeShellScriptBin "build-gallery" ''
+            set -euo pipefail
+            
+            mkdir -p public/doors
+            
+            # Copy door templates
+            for i in 17 23 59; do
+              if [ -f "templates/door$i.html" ]; then
+                cp "templates/door$i.html" "public/doors/door-$i.html"
+                echo "✅ Door $i"
+              fi
+            done
+            
+            # Generate gallery index
+            cat > public/index.html << 'HTML'
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>71 Doors - OSM Planet Gallery</title>
+              <style>
+                body { 
+                  margin: 0; 
+                  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                  font-family: 'Courier New', monospace;
+                  color: #fff;
+                }
+                .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+                h1 { text-align: center; font-size: 3em; margin-bottom: 10px; }
+                .subtitle { text-align: center; opacity: 0.8; margin-bottom: 40px; }
+                .doors { 
+                  display: grid; 
+                  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                  gap: 20px;
+                }
+                .door {
+                  background: rgba(255,255,255,0.1);
+                  border: 2px solid rgba(255,255,255,0.3);
+                  border-radius: 10px;
+                  padding: 20px;
+                  text-align: center;
+                  cursor: pointer;
+                  transition: all 0.3s;
+                }
+                .door:hover {
+                  background: rgba(255,255,255,0.2);
+                  transform: scale(1.05);
+                }
+                .door.cusp { border-color: #ffd700; }
+                .door-number { font-size: 2em; font-weight: bold; }
+                .door-name { margin-top: 10px; opacity: 0.9; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>🗺️ 71 Doors Gallery</h1>
+                <p class="subtitle">Monster Group OSM Visualizations</p>
+                
+                <div class="doors">
+                  <a href="doors/door-17.html" style="text-decoration: none; color: inherit;">
+                    <div class="door cusp">
+                      <div class="door-number">17</div>
+                      <div class="door-name">Hawkins Radiation</div>
+                      <div>🌟 Cusp</div>
+                    </div>
+                  </a>
+                  
+                  <a href="doors/door-23.html" style="text-decoration: none; color: inherit;">
+                    <div class="door cusp">
+                      <div class="door-number">23</div>
+                      <div class="door-name">Consciousness</div>
+                      <div>🧠 Cusp</div>
+                    </div>
+                  </a>
+                  
+                  <a href="doors/door-59.html" style="text-decoration: none; color: inherit;">
+                    <div class="door cusp">
+                      <div class="door-number">59</div>
+                      <div class="door-name">Memory</div>
+                      <div>🕉️ Cusp</div>
+                    </div>
+                  </a>
+                </div>
+                
+                <div style="margin-top: 40px; text-align: center; opacity: 0.7;">
+                  <p>Data from Archive.org torrents | Built with Nix</p>
+                  <p><a href="torrents.html" style="color: #ffd700;">📥 Download Torrents</a></p>
+                </div>
+              </div>
+            </body>
+            </html>
+            HTML
+            
+            echo "✅ Gallery built: public/index.html"
+            echo "   Doors: public/doors/"
+          '';
+
+          # Serve gallery
+          serve = pkgs.writeShellScriptBin "serve" ''
+            echo "🌐 http://localhost:8000"
+            ${pkgs.python3}/bin/python3 -m http.server 8000 -d public
+          '';
+        };
+
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            aria2
+            wget
+            python3
           ];
-          buildInputs = [ 
-            pkgs.openssl.dev
-            pkgs.curl
-            pkgs.libgit2
-            pkgs.libssh2
-            pkgs.zlib
-            pkgs.nghttp2
-          ];
-          
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
-      };
-      
-      # Monadic execution in security shard
-      nixosModules.torrent-witness = { config, ... }: {
-        imports = [ sops-nix.nixosModules.sops ];
-        
-        sops = {
-          defaultSopsFile = ./secrets/solana-keypair.yaml;
-          secrets = {
-            "solana/keypair" = {
-              # Only accessible in shard 23
-              mode = "0400";
-              owner = "torrent-witness";
-            };
-            "ipfs/api-key" = {
-              mode = "0400";
-              owner = "torrent-witness";
-            };
-          };
-        };
-        
-        systemd.services.torrent-witness = {
-          description = "Torrent → IPFS → Solana witness (shard 23)";
-          wantedBy = [ "multi-user.target" ];
-          
-          serviceConfig = {
-            User = "torrent-witness";
-            ExecStart = "${self.packages.${system}.osm-torrent-client}/bin/osm-planet-torrent";
-            Environment = [
-              "SOLANA_KEYPAIR_PATH=${config.sops.secrets."solana/keypair".path}"
-              "IPFS_API_KEY_PATH=${config.sops.secrets."ipfs/api-key".path}"
-              "SECURITY_SHARD=${toString securityShard}"
-            ];
-          };
-        };
-        
-        users.users.torrent-witness = {
-          isSystemUser = true;
-          group = "torrent-witness";
-        };
-        users.groups.torrent-witness = {};
-      };
-    };
+      }
+    );
 }

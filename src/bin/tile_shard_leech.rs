@@ -181,7 +181,8 @@ fn main() -> Result<()> {
     let (piece_tx, piece_rx) = bounded(48);
     let (node_tx, node_rx) = bounded(100_000);
     
-    let tiles = Arc::new(Mutex::new(HashMap::<(u8, u8), Vec<LeechNode>>::new()));
+    // Tile writers: one file per tile, written incrementally
+    let tile_writers = Arc::new(Mutex::new(HashMap::<(u8, u8), File>::new()));
     
     // Reader thread
     let reader = std::thread::spawn(move || -> Result<()> {
@@ -314,49 +315,65 @@ fn main() -> Result<()> {
     drop(piece_rx);
     drop(node_tx);
     
-    // Writer thread
-    let writer = std::thread::spawn(move || {
-        let mut total_nodes = 0u64;
+    // 24 writer threads (one per worker)
+    let mut writers = vec![];
+    for writer_id in 0..24 {
+        let rx = node_rx.clone();
+        let tile_writers = Arc::clone(&tile_writers);
         
-        while let Ok(node) = node_rx.recv() {
-            // Calculate Ramanujan tile
-            let tile_lat = (((node.lat + 90.0) * 100.0) as i64 % 71) as u8;
-            let tile_lon = (((node.lon + 180.0) * 100.0) as i64 % 59) as u8;
+        writers.push(std::thread::spawn(move || {
+            let mut nodes_written = 0u64;
             
-            let mut tiles = tiles.lock().unwrap();
-            tiles.entry((tile_lat, tile_lon))
-                .or_insert_with(Vec::new)
-                .push(node);
-            
-            total_nodes += 1;
-            
-            if total_nodes % 1_000_000 == 0 {
-                println!("💾 {} million nodes, {} tiles", total_nodes / 1_000_000, tiles.len());
-            }
-        }
-        
-        println!("📊 Writing {} tiles...", tiles.lock().unwrap().len());
-        
-        // Write tiles as JSONL (Parquet would be better but needs more deps)
-        for ((tile_lat, tile_lon), nodes) in tiles.lock().unwrap().iter() {
-            let filename = format!("tiles_leech/tile_{:02}_{:02}_00.jsonl", tile_lat, tile_lon);
-            if let Ok(mut f) = File::create(&filename) {
-                for node in nodes {
-                    if let Ok(json) = serde_json::to_string(node) {
-                        writeln!(f, "{}", json).ok();
-                    }
+            while let Ok(node) = rx.recv() {
+                // Calculate Ramanujan tile
+                let tile_lat = (((node.lat + 90.0) * 100.0) as i64 % 71) as u8;
+                let tile_lon = (((node.lon + 180.0) * 100.0) as i64 % 59) as u8;
+                
+                // Get or create file for this tile
+                let mut writers = tile_writers.lock().unwrap();
+                let file = writers.entry((tile_lat, tile_lon))
+                    .or_insert_with(|| {
+                        let filename = format!("tiles_leech/tile_{:02}_{:02}_00.jsonl", tile_lat, tile_lon);
+                        File::create(&filename).unwrap()
+                    });
+                
+                // Write node as JSONL
+                if let Ok(json) = serde_json::to_string(&node) {
+                    writeln!(file, "{}", json).ok();
+                }
+                
+                nodes_written += 1;
+                
+                if nodes_written % 100_000 == 0 {
+                    println!("💾 Writer {} wrote {} nodes", writer_id, nodes_written);
                 }
             }
-        }
-        
-        println!("✅ Total: {} nodes", total_nodes);
-    });
+            
+            println!("✅ Writer {} finished: {} nodes", writer_id, nodes_written);
+        }));
+    }
+    
+    drop(node_rx);
     
     reader.join().unwrap()?;
     for p in parsers {
         p.join().unwrap();
     }
-    writer.join().unwrap();
+    for w in writers {
+        w.join().unwrap();
+    }
+    
+    // Flush and close all files
+    println!("💾 Flushing all tile files...");
+    let mut writers = tile_writers.lock().unwrap();
+    for ((lat, lon), file) in writers.iter_mut() {
+        file.flush()?;
+        println!("✅ Flushed tile_{:02}_{:02}_00.jsonl", lat, lon);
+    }
+    drop(writers);
+    
+    let total_tiles = tile_writers.lock().unwrap().len();
+    println!("🎉 Complete! {} tiles written", total_tiles);
     
     println!("🎉 Complete! OSM planet encoded in 24D Leech lattice");
     

@@ -1,0 +1,470 @@
+# DeepWiki Q&A with Code Context for Repository: ikatson/rqbit
+## Q1
+create a partial downloader that downloads just one block of one file of one torrent
+### Answer
+Answer
+---
+
+To download a single block (chunk) of one file in a torrent, you can leverage rqbit's existing selective download and streaming infrastructure. Here's how to implement it:
+
+## 1. Select the target file and chunk
+
+First, use `AddTorrentOptions` to select only the target file, then calculate which piece and chunk you need:
+
+```rust
+use librqbit::prelude::*;
+use librqbit_core::lengths::{Lengths, ChunkInfo};
+
+// Select only the target file (e.g., file_id 0)
+let options = AddTorrentOptions {
+    only_files: Some(vec![0]), // Select only file 0
+    ..Default::default()
+};
+
+// After adding torrent, get metadata to calculate chunk location
+let metadata = torrent.metadata.load_full()?;
+let lengths = metadata.lengths;
+
+// Calculate which piece contains your target byte offset
+let target_offset = 12345; // Your desired offset within the file
+let piece_range = lengths.iter_pieces_within_offset(target_offset, 1);
+let target_piece = piece_range.start;
+
+// Find the specific chunk within that piece
+let chunk_info = lengths
+    .iter_chunk_infos(ValidPieceIndex(target_piece))
+    .find(|c| {
+        let chunk_start = lengths.piece_offset(ValidPieceIndex(target_piece)) + c.offset as u64;
+        chunk_start <= target_offset && target_offset < chunk_start + c.size as u64
+    })
+    .unwrap();
+```
+
+## 2. Configure ChunkTracker to download only that chunk
+
+Modify the ChunkTracker to only need that specific piece:
+
+```rust
+// After torrent is initialized but before starting
+let mut only_files = HashSet::new();
+only_files.insert(0); // Target file ID
+
+// Update which files/pieces are needed
+torrent.update_only_files(&only_files)?;
+
+// The ChunkTracker will now only track pieces for file 0
+```
+
+## 3. Start the torrent and wait for the specific chunk
+
+The existing peer request machinery will download the needed piece:
+
+```rust
+// Start the torrent
+torrent.start().await?;
+
+// Wait for the specific piece to be downloaded
+let mut downloaded = false;
+while !downloaded {
+    let have = torrent.with_chunk_tracker(|ct| {
+        ct.is_piece_have(ValidPieceIndex(target_piece))
+    })?;
+    
+    if have {
+        downloaded = true;
+    } else {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+}
+```
+
+## 4. Read the specific chunk
+
+Once downloaded, use FileOps to read just that chunk:
+
+```rust
+let chunk_data = torrent.with_storage_and_file(0, |storage, file_info| {
+    let mut buf = vec![0u8; chunk_info.size as usize];
+    storage.pread_exact(0, 
+        target_offset - file_info.offset_in_torrent, 
+        &mut buf)?;
+    Ok::<_, anyhow::Error>(buf)
+}, &metadata)?;
+```
+
+## Key Components Used
+
+- **ChunkTracker**: Tracks which pieces are needed (`queue_pieces` bitfield) rqbit:14-44 
+- **Lengths**: Calculates piece and chunk offsets rqbit:75-174 
+- **FileOps**: Reads chunks from storage rqbit:250-300 
+- **TorrentStateLive**: Manages piece requests via `reserve_next_needed_piece` rqbit:1227-1276 
+- **AddTorrentOptions**: Controls which files to download rqbit:232-281 
+
+## Notes
+
+- The chunk size is typically 16KB (`CHUNK_SIZE` constant)
+- Pieces are typically 256KB-1MB and may span multiple files
+- The last piece/chunk in a torrent may be smaller than standard size
+- This approach uses rqbit's existing peer connection and piece validation infrastructure rqbit:1594-1650 
+
+Wiki pages you might want to explore:
+- [Torrent State Machine (ikatson/rqbit)](/wiki/ikatson/rqbit#2.2)
+- [Storage System (ikatson/rqbit)](/wiki/ikatson/rqbit#4)
+### Citations
+**File:** crates/librqbit/src/chunk_tracker.rs (L14-44)
+```rust
+pub struct ChunkTracker {
+    // This forms the basis of a "queue" to pull from.
+    // It's set to 1 if we need a piece, but the moment we start requesting a peer,
+    // it's set to 0.
+    //
+    // Initially this is the opposite of "have", until we start making requests.
+    // An in-flight request is not in in the queue, and not in "have".
+    //
+    // needed initial value = selected & !have
+    queue_pieces: BF,
+
+    // This has a bit set per each chunk (block) that we have written to the output file.
+    // It doesn't mean it's valid yet. Used to track how much is left in each piece.
+    chunk_status: BF,
+
+    // These are the pieces that we actually have, fully checked and downloaded.
+    have: BoxBitV,
+
+    // The pieces that the user selected. This doesn't change unless update_only_files
+    // was called.
+    selected: BF,
+
+    // How many bytes do we have per each file.
+    per_file_bytes: Vec<u64>,
+
+    lengths: Lengths,
+
+    // Quick to retrieve stats, that MUST be in sync with the BFs
+    // above (have/selected).
+    hns: HaveNeededSelected,
+}
+```
+**File:** crates/librqbit_core/src/lengths.rs (L75-174)
+```rust
+impl Lengths {
+    #[cfg(any(feature = "sha1-crypto-hash", feature = "sha1-ring"))]
+    pub fn from_torrent<ByteBuf: AsRef<[u8]>>(
+        torrent: &crate::torrent_metainfo::TorrentMetaV1Info<ByteBuf>,
+    ) -> anyhow::Result<Lengths> {
+        let total_length = torrent.iter_file_lengths()?.sum();
+        Lengths::new(total_length, torrent.piece_length)
+    }
+
+    pub fn new(total_length: u64, piece_length: u32) -> anyhow::Result<Self> {
+        if total_length == 0 {
+            anyhow::bail!("torrent with 0 length is useless")
+        }
+        let total_pieces = total_length.div_ceil(piece_length as u64) as u32;
+        Ok(Self {
+            piece_length,
+            total_length,
+            chunks_per_piece: (piece_length as u64).div_ceil(CHUNK_SIZE as u64) as u32,
+            last_piece_id: total_pieces - 1,
+            last_piece_length: last_element_size(total_length, piece_length as u64) as u32,
+        })
+    }
+
+    // How many bytes are required to store a bitfield where there's one bit for each piece.
+    pub const fn piece_bitfield_bytes(&self) -> usize {
+        self.total_pieces().div_ceil(8) as usize
+    }
+
+    // How many bytes are required to store a bitfield where there's one bit for each chunk.
+    pub const fn chunk_bitfield_bytes(&self) -> usize {
+        self.total_chunks().div_ceil(8) as usize
+    }
+    pub const fn total_length(&self) -> u64 {
+        self.total_length
+    }
+    pub const fn validate_piece_index(&self, index: u32) -> Option<ValidPieceIndex> {
+        if index > self.last_piece_id {
+            return None;
+        }
+        Some(ValidPieceIndex(index))
+    }
+    pub fn try_validate_piece_index(&self, index: u32) -> anyhow::Result<ValidPieceIndex> {
+        self.validate_piece_index(index)
+            .with_context(|| format!("invalid piece index {index}"))
+    }
+    pub const fn default_piece_length(&self) -> u32 {
+        self.piece_length
+    }
+    pub const fn default_chunks_per_piece(&self) -> u32 {
+        self.chunks_per_piece
+    }
+    pub const fn total_chunks(&self) -> u32 {
+        // TODO: test
+        self.last_piece_id * self.default_chunks_per_piece()
+            + self.chunks_per_piece(self.last_piece_id())
+    }
+    pub const fn last_piece_id(&self) -> ValidPieceIndex {
+        ValidPieceIndex(self.last_piece_id)
+    }
+    pub const fn total_pieces(&self) -> u32 {
+        self.last_piece_id + 1
+    }
+    pub const fn piece_length(&self, index: ValidPieceIndex) -> u32 {
+        if index.0 == self.last_piece_id {
+            return self.last_piece_length;
+        }
+        self.piece_length
+    }
+    pub const fn chunk_absolute_offset(&self, chunk_info: &ChunkInfo) -> u64 {
+        self.piece_offset(chunk_info.piece_index) + chunk_info.offset as u64
+    }
+    pub const fn piece_offset(&self, index: ValidPieceIndex) -> u64 {
+        index.0 as u64 * self.piece_length as u64
+    }
+
+    pub fn iter_piece_infos(&self) -> impl Iterator<Item = PieceInfo> {
+        let last_id = self.last_piece_id;
+        let last_len = self.last_piece_length;
+        let pl = self.piece_length;
+        (0..self.total_pieces()).map(move |idx| PieceInfo {
+            piece_index: ValidPieceIndex(idx),
+            len: if idx == last_id { last_len } else { pl },
+        })
+    }
+
+    // A helper to iterate over pieces in a file.
+    pub fn iter_pieces_within_offset(&self, offset_bytes: u64, len: u64) -> std::ops::Range<u32> {
+        // Validation and correction
+        let offset_bytes = offset_bytes.min(self.total_length);
+        let end_bytes = (offset_bytes + len).min(self.total_length);
+
+        let start_piece_id = (offset_bytes / self.piece_length as u64) as u32;
+        let end_piece_id = if end_bytes == offset_bytes {
+            start_piece_id
+        } else {
+            end_bytes.div_ceil(self.piece_length as u64) as u32
+        };
+        start_piece_id..end_piece_id
+    }
+
+```
+**File:** crates/librqbit/src/file_ops.rs (L250-300)
+```rust
+    pub fn read_chunk(
+        &self,
+        who_sent: PeerHandle,
+        chunk_info: &ChunkInfo,
+        result_buf: &mut [u8],
+    ) -> anyhow::Result<()> {
+        if result_buf.len() < chunk_info.size as usize {
+            anyhow::bail!("read_chunk(): not enough capacity in the provided buffer")
+        }
+        let mut absolute_offset = self.lengths.chunk_absolute_offset(chunk_info);
+        let mut buf = result_buf;
+
+        for (file_idx, file_info) in self.file_infos.iter().enumerate() {
+            let file_len = file_info.len;
+            if absolute_offset > file_len {
+                absolute_offset -= file_len;
+                continue;
+            }
+            let file_remaining_len = file_len - absolute_offset;
+            let to_read_in_file = std::cmp::min(file_remaining_len, buf.len() as u64).try_into()?;
+
+            trace!(
+                "piece={}, handle={}, file_idx={}, seeking to {}. To read chunk: {:?}",
+                chunk_info.piece_index,
+                who_sent,
+                file_idx,
+                absolute_offset,
+                &chunk_info
+            );
+            if file_info.attrs.padding {
+                buf[..to_read_in_file].fill(0);
+            } else {
+                self.files
+                    .pread_exact(file_idx, absolute_offset, &mut buf[..to_read_in_file])
+                    .with_context(|| {
+                        format!("error reading {file_idx} bytes, file_id: {to_read_in_file}")
+                    })?;
+            }
+
+            buf = &mut buf[to_read_in_file..];
+
+            if buf.is_empty() {
+                break;
+            }
+
+            absolute_offset = 0;
+        }
+
+        Ok(())
+    }
+
+```
+**File:** crates/librqbit/src/torrent_state/live/mod.rs (L1227-1276)
+```rust
+    fn reserve_next_needed_piece(&self) -> anyhow::Result<Option<ValidPieceIndex>> {
+        // TODO: locking one inside the other in different order results in deadlocks.
+        self.state
+            .peers
+            .with_live_mut(self.addr, "reserve_next_needed_piece", |live| {
+                if self.locked.read().i_am_choked {
+                    debug!("we are choked, can't reserve next piece");
+                    return Ok(None);
+                }
+                let mut g = self.state.lock_write("reserve_next_needed_piece");
+
+                let n = {
+                    let mut n_opt = None;
+                    let bf = &live.bitfield;
+                    let chunk_tracker = g.get_chunks()?;
+                    let priority_streamed_pieces = self
+                        .state
+                        .streams
+                        .iter_next_pieces(&self.state.lengths)
+                        .filter(|pid| {
+                            !chunk_tracker.is_piece_have(*pid)
+                                && !g.inflight_pieces.contains_key(pid)
+                        });
+                    let natural_order_pieces = chunk_tracker
+                        .iter_queued_pieces(&g.file_priorities, &self.state.metadata.file_infos);
+                    for n in priority_streamed_pieces.chain(natural_order_pieces) {
+                        if bf.get(n.get() as usize).map(|v| *v) == Some(true) {
+                            n_opt = Some(n);
+                            break;
+                        }
+                    }
+
+                    match n_opt {
+                        Some(n_opt) => n_opt,
+                        None => return Ok(None),
+                    }
+                };
+                g.inflight_pieces.insert(
+                    n,
+                    InflightPiece {
+                        peer: self.addr,
+                        started: Instant::now(),
+                    },
+                );
+                g.get_chunks_mut()?.reserve_needed_piece(n);
+                Ok(Some(n))
+            })
+            .transpose()
+            .map(|r| r.flatten())
+    }
+```
+**File:** crates/librqbit/src/torrent_state/live/mod.rs (L1594-1650)
+```rust
+    async fn on_received_piece(&self, piece: Piece<ByteBuf<'_>>) -> anyhow::Result<()> {
+        let piece_index = self
+            .state
+            .lengths
+            .validate_piece_index(piece.index)
+            .with_context(|| format!("peer sent an invalid piece {}", piece.index))?;
+        let chunk_info = match self.state.lengths.chunk_info_from_received_data(
+            piece_index,
+            piece.begin,
+            piece.block.len().try_into().context("bug")?,
+        ) {
+            Some(i) => i,
+            None => {
+                anyhow::bail!("peer sent us an invalid piece {:?}", &piece,);
+            }
+        };
+
+        self.requests_sem.add_permits(1);
+
+        // Peer chunk/byte counters.
+        self.counters
+            .fetched_bytes
+            .fetch_add(piece.block.len() as u64, Ordering::Relaxed);
+        self.counters.fetched_chunks.fetch_add(1, Ordering::Relaxed);
+
+        self.state
+            .peers
+            .with_live_mut(self.addr, "inflight_requests.remove", |h| {
+                if !h.inflight_requests.remove(&chunk_info) {
+                    anyhow::bail!(
+                        "peer sent us a piece we did not ask. Requested pieces: {:?}. Got: {:?}",
+                        &h.inflight_requests,
+                        &piece,
+                    );
+                }
+                Ok(())
+            })
+            .context("peer not found")??;
+
+        // This one is used to calculate download speed.
+        self.state
+            .stats
+            .fetched_bytes
+            .fetch_add(piece.block.as_ref().len() as u64, Ordering::Relaxed);
+        self.state
+            .session_stats
+            .fetched_bytes
+            .fetch_add(piece.block.len() as u64, Ordering::Relaxed);
+
+        fn write_to_disk(
+            state: &TorrentStateLive,
+            addr: PeerHandle,
+            counters: &AtomicPeerCounters,
+            piece: &Piece<impl AsRef<[u8]> + std::fmt::Debug>,
+            chunk_info: &ChunkInfo,
+        ) -> anyhow::Result<()> {
+            let index = piece.index;
+```
+**File:** crates/librqbit/src/session.rs (L232-281)
+```rust
+#[derive(Default, Serialize, Deserialize)]
+pub struct AddTorrentOptions {
+    /// Start in paused state.
+    #[serde(default)]
+    pub paused: bool,
+    /// A regex to only download files matching it.
+    pub only_files_regex: Option<String>,
+    /// An explicit list of file IDs to download.
+    /// To see the file indices, run with "list_only".
+    pub only_files: Option<Vec<usize>>,
+    /// Allow writing on top of existing files, including when resuming a torrent.
+    /// You probably want to set it, however for safety it's not default.
+    #[serde(default)]
+    pub overwrite: bool,
+    /// Only list the files in the torrent without starting it.
+    #[serde(default)]
+    pub list_only: bool,
+    /// The output folder for the torrent. If not set, the session's default one will be used.
+    pub output_folder: Option<String>,
+    /// Sub-folder within session's default output folder. Will error if "output_folder" if also set.
+    /// By default, multi-torrent files are downloaded to a sub-folder.
+    pub sub_folder: Option<String>,
+    /// Peer connection options, timeouts etc. If not set, session's defaults will be used.
+    pub peer_opts: Option<PeerConnectionOptions>,
+
+    /// Force a refresh interval for polling trackers.
+    pub force_tracker_interval: Option<Duration>,
+
+    #[serde(default)]
+    pub disable_trackers: bool,
+
+    #[serde(default)]
+    pub ratelimits: LimitsConfig,
+
+    /// Initial peers to start of with.
+    pub initial_peers: Option<Vec<SocketAddr>>,
+
+    /// This is used to restore the session from serialized state.
+    pub preferred_id: Option<usize>,
+
+    #[serde(skip)]
+    pub storage_factory: Option<BoxStorageFactory>,
+
+    // If true, will write to disk in separate threads. The downside is additional allocations.
+    // May be useful if the disk is slow.
+    pub defer_writes: Option<bool>,
+
+    // Custom trackers
+    pub trackers: Option<Vec<String>>,
+}
+```

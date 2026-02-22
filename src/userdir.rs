@@ -26,7 +26,13 @@ pub struct UserLocations {
     pub wikidata_user: Option<String>,  // Wikidata username
     #[serde(skip_serializing_if = "Option::is_none")]
     pub osm_user: Option<String>,       // OSM username
+    #[serde(default = "default_torrent_url")]
+    pub torrent_url: String,            // Torrent file or magnet link
     pub locations: Vec<Location>,
+}
+
+fn default_torrent_url() -> String {
+    "osm-planet.torrent".to_string()
 }
 
 pub fn load_user_locations(user: &str) -> Result<UserLocations, Box<dyn std::error::Error>> {

@@ -28,6 +28,30 @@ name = "parse-pieces"
 path = "src/bin/parse_pieces.rs"
 
 [[bin]]
+name = "ooda-loop"
+path = "src/bin/ooda_loop.rs"
+
+[[bin]]
+name = "mcts-demo"
+path = "src/bin/mcts_demo.rs"
+
+[[bin]]
+name = "enlightenment"
+path = "src/bin/enlightenment_demo.rs"
+
+[[bin]]
+name = "j-invariant"
+path = "src/bin/j_invariant_demo.rs"
+
+[[bin]]
+name = "black-hole-fall"
+path = "src/bin/black_hole_fall.rs"
+
+[[bin]]
+name = "black-hole-door-game"
+path = "src/bin/black_hole_door_game.rs"
+
+[[bin]]
 name = "tile-shard"
 path = "src/bin/tile_shard.rs"
 
@@ -42,6 +66,14 @@ path = "src/bin/reshard_to_ramanujan.rs"
 [[bin]]
 name = "door-game"
 path = "src/bin/door_game.rs"
+
+[[bin]]
+name = "bbs-map"
+path = "src/bin/bbs_map.rs"
+
+[[bin]]
+name = "tile-parquet-leech"
+path = "src/bin/tile_parquet_leech.rs"
 
 [[bin]]
 name = "reshard-planet"
@@ -140,3 +172,14 @@ chrono = "0.4"
 [[bin]]
 name = "tile-shard-leech"
 path = "src/bin/tile_shard_leech.rs"
+
+[[bin]]
+name = "static_map_generator"
+path = "src/bin/static_map_generator.rs"
+
+[[bin]]
+name = "nginx_generator"
+path = "src/bin/nginx_generator.rs"
+
+[dependencies]
+chrono = "0.4"

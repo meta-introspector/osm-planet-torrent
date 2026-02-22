@@ -1,0 +1,211 @@
+Need to properly decode zlib-compressed PBF blobs and parse DenseNodes format to extract actual geographic data.
+
+To get actual coordinates and tags out of zlib‑compressed OSM PBF blobs you need two layers of decoding: the blob (with zlib) and then the DenseNodes delta/varint structure inside the PrimitiveBlock.[1][2][3]
+
+Below is Rust‑oriented, prost‑style pseudocode showing the key steps.
+
+***
+
+## 1. Decompress the zlib PBF blob
+
+Given a `Blob` protobuf (from `fileformat.proto`), turn it into raw `PrimitiveBlock` bytes:
+
+```rust
+use flate2::read::ZlibDecoder;
+use prost::Message;
+use std::io::Read;
+
+// fileformat.proto generated types
+use crate::fileformat::{Blob, BlobHeader};
+// osmformat.proto generated types
+use crate::osmformat::PrimitiveBlock;
+
+fn decode_blob_to_primitive_block(blob: &Blob) -> anyhow::Result<PrimitiveBlock> {
+    let raw = if let Some(ref z) = blob.zlib_data {
+        let mut decoder = ZlibDecoder::new(&z[..]);
+        let mut out = Vec::with_capacity(blob.raw_size as usize);
+        decoder.read_to_end(&mut out)?;
+        out
+    } else if let Some(ref r) = blob.raw {
+        r.clone()
+    } else {
+        anyhow::bail!("unsupported compression (need zlib or raw)");
+    };
+
+    let block = PrimitiveBlock::decode(&raw[..])?;
+    Ok(block)
+}
+```
+
+Once you have `PrimitiveBlock`, you can iterate its `primitivegroup` entries and find `dense` nodes.[1][3]
+
+***
+
+## 2. DenseNodes structure and deltas
+
+The PBF spec for `DenseNodes`:[1][3]
+
+```proto
+message DenseNodes {
+  repeated sint64 id  = 1 [packed = true]; // DELTA coded
+  optional DenseInfo denseinfo = 5;
+  repeated sint64 lat = 8 [packed = true]; // DELTA coded
+  repeated sint64 lon = 9 [packed = true]; // DELTA coded
+  repeated uint32 keys_vals = 10 [packed = true];
+}
+```
+
+Important points:
+
+- `id`, `lat`, `lon` are **delta‑encoded** sequences.
+  - Store prev value, add current delta to reconstruct absolute.[1][3]
+- `keys_vals` is a flattened list of tags:
+  - For each node: `key_id, val_id, key_id, val_id, ..., 0` (0 terminator).[1]
+  - `key_id` and `val_id` index into the block’s `stringtable`.[1][3]
+
+***
+
+## 3. Converting DenseNodes to usable nodes
+
+You also need `PrimitiveBlock`’s granularity and offsets to get degrees:[1]
+
+$$
+lat\_deg = 1e-9 \times (lat\_offset + granularity \times lat\_encoded)
+$$
+
+$$
+lon\_deg = 1e-9 \times (lon\_offset + granularity \times lon\_encoded)
+$$
+
+Rust‑style code to walk one `DenseNodes`:
+
+```rust
+use crate::osmformat::{PrimitiveBlock, DenseNodes};
+
+#[derive(Debug)]
+struct NodeOut {
+    id: i64,
+    lat: f64,
+    lon: f64,
+    tags: Vec<(String, String)>,
+}
+
+fn dense_nodes_to_nodes(block: &PrimitiveBlock, dense: &DenseNodes) -> Vec<NodeOut> {
+    let granularity = block.granularity.unwrap_or(100); // default 100 nanodeg
+    let lat_offset = block.lat_offset.unwrap_or(0);
+    let lon_offset = block.lon_offset.unwrap_or(0);
+
+    // 1. Decode delta-coded id/lat/lon
+    let mut ids = Vec::with_capacity(dense.id.len());
+    let mut lats = Vec::with_capacity(dense.lat.len());
+    let mut lons = Vec::with_capacity(dense.lon.len());
+
+    let mut acc_id: i64 = 0;
+    for d in &dense.id {
+        acc_id += *d;
+        ids.push(acc_id);
+    }
+
+    let mut acc_lat: i64 = 0;
+    for d in &dense.lat {
+        acc_lat += *d;
+        lats.push(acc_lat);
+    }
+
+    let mut acc_lon: i64 = 0;
+    for d in &dense.lon {
+        acc_lon += *d;
+        lons.push(acc_lon);
+    }
+
+    assert_eq!(ids.len(), lats.len());
+    assert_eq!(ids.len(), lons.len());
+
+    // 2. Helper to resolve string IDs
+    let str_table = &block.stringtable.s;
+    let resolve = |sid: u32| -> String {
+        let bytes = &str_table[sid as usize];
+        String::from_utf8_lossy(bytes).into_owned()
+    };
+
+    // 3. Walk keys_vals and assign tags per node
+    let mut nodes = Vec::with_capacity(ids.len());
+    let mut kv_index = 0;
+
+    for i in 0..ids.len() {
+        // Build tags for node i
+        let mut tags = Vec::new();
+
+        while kv_index < dense.keys_vals.len() {
+            let k = dense.keys_vals[kv_index];
+            kv_index += 1;
+
+            if k == 0 {
+                // End of this node's tags
+                break;
+            }
+
+            let v = dense.keys_vals[kv_index];
+            kv_index += 1;
+
+            let key = resolve(k);
+            let val = resolve(v);
+            tags.push((key, val));
+        }
+
+        // Convert coordinates to degrees
+        let lat_enc = lats[i];
+        let lon_enc = lons[i];
+
+        let lat_deg =
+            1e-9_f64 * (lat_offset as f64 + (granularity as f64 * lat_enc as f64));
+        let lon_deg =
+            1e-9_f64 * (lon_offset as f64 + (granularity as f64 * lon_enc as f64));
+
+        nodes.push(NodeOut {
+            id: ids[i],
+            lat: lat_deg,
+            lon: lon_deg,
+            tags,
+        });
+    }
+
+    nodes
+}
+```
+
+This gives you per‑node:
+
+- `id` (global OSM node id).
+- `lat`/`lon` in degrees.
+- `tags: Vec<(String, String)>` for that node.
+
+***
+
+## 4. Putting it all together for one blob
+
+Given bytes for a single blob (starting at the `BlobHeader` length field), you’d:
+
+1. Read 4‑byte header length, parse `BlobHeader`.
+2. Read `datasize` bytes, parse `Blob`.
+3. `decode_blob_to_primitive_block` to get `PrimitiveBlock`.
+4. For each `PrimitiveGroup` in the block, if `dense.is_some()`, call `dense_nodes_to_nodes`.
+
+If you’re already using a Rust crate like `osmpbf` or `osmpbfreader`, they internally do essentially this; you can either:
+
+- Use their high‑level iterator API and ignore non‑DenseNodes, or
+- Borrow their generated types and plumbing but plug in your own per‑blob logic.
+
+***
+
+If you show your current Rust structs for `Blob`, `PrimitiveBlock`, and `DenseNodes` (prost or other), I can tailor this directly to your types and lifetimes, or adapt it to a specific crate’s API.
+
+Citations:
+[1] PBF Format - OpenStreetMap Wiki https://wiki.openstreetmap.org/wiki/PBF_Format
+[2] OSM File Formats Manual - Osmcode.org https://osmcode.org/file-formats-manual/
+[3] mapbox/osmpbf-tutorial - GitHub https://github.com/mapbox/osmpbf-tutorial
+[4] Parsing the new OpenStreetMaps PBF file format. https://chaosinmotion.com/2011/11/21/parsing-the-new-openstreetmaps-pbf-file-format/
+[5] OpenStreetMap - Ruda's Personal Wiki https://wiki.ruda.city/OpenStreetMap
+[6] New OSM file format: 30% smaller than PBF, 5x faster to import https://community.openstreetmap.org/t/new-osm-file-format-30-smaller-than-pbf-5x-faster-to-import/137151
+[7] [PDF] Evolution of the OSM Data Model - OpenStreetMap Foundation https://osmfoundation.org/w/images/e/e6/2022-08-15-study-evolution-of-the-osm-data-model-by-Jochen-Topf_CC-BY-SA_4.0.pdf
+[8] osmpbf - crates.io: Rust Package Registry https://crates.io/crates/osmpbf
