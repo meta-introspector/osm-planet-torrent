@@ -1,13 +1,15 @@
 // Parquet index for OSM torrent pieces
 // Phase 1: Index - Build geographic index of all pieces
-// Phase 2: Fetch - Download only needed pieces
-// Sharding: mod (71 * 59 * 497) = mod 2,082,203 (Monster Group primes)
+// Phase 2: Fetch - Download only needed pieces (MINIMAL - max 200KB)
+// Sharding: mod (71 * 59 * 47) = mod 196,883 (Monster Group order)
 
 use serde::{Deserialize, Serialize};
+use std::collections::BinaryHeap;
+use std::cmp::Ordering;
 
-const SHARD_MODULO: u32 = 71 * 59 * 497; // 2,082,203
+const SHARD_MODULO: u32 = 71 * 59 * 47; // 196,883
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PieceIndex {
     pub piece_id: u32,
     pub byte_offset: u64,
@@ -19,6 +21,7 @@ pub struct PieceIndex {
     pub osm_node_count: u64,
     pub has_wikidata: bool,
     pub shard_id: u32, // piece_id % SHARD_MODULO
+    pub priority: u8,  // 0=highest, 255=lowest
 }
 
 impl PieceIndex {
@@ -42,7 +45,38 @@ impl PieceIndex {
             osm_node_count: 0,
             has_wikidata: false,
             shard_id: piece_id % SHARD_MODULO,
+            priority: 255,
         }
+    }
+    
+    pub fn intersects_bbox(&self, min_lat: f64, min_lon: f64, max_lat: f64, max_lon: f64) -> bool {
+        !(self.lat_max < min_lat || self.lat_min > max_lat ||
+          self.lon_max < min_lon || self.lon_min > max_lon)
+    }
+    
+    pub fn distance_to_center(&self, center_lat: f64, center_lon: f64) -> f64 {
+        let piece_lat = (self.lat_min + self.lat_max) / 2.0;
+        let piece_lon = (self.lon_min + self.lon_max) / 2.0;
+        ((piece_lat - center_lat).powi(2) + (piece_lon - center_lon).powi(2)).sqrt()
+    }
+}
+
+impl Ord for PieceIndex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.priority.cmp(&self.priority) // Min-heap
+    }
+}
+
+impl PartialOrd for PieceIndex {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for PieceIndex {}
+impl PartialEq for PieceIndex {
+    fn eq(&self, other: &Self) -> bool {
+        self.piece_id == other.piece_id
     }
 }
 
@@ -77,6 +111,72 @@ pub fn build_index_from_torrent(
             byte_length,
             0.0, 0.0, 0.0, 0.0,
         );
+        pieces.push(piece);
+    }
+    
+    Ok(pieces)
+}
+
+// Phase 2: Plan minimal fetch (max 200KB)
+// Uses existing ramanujan-location-index.json for piece→shard mapping
+pub fn plan_minimal_fetch(
+    pieces: &[PieceIndex],
+    viewport: (f64, f64, f64, f64), // (min_lat, min_lon, max_lat, max_lon)
+    max_bytes: u32,
+) -> Vec<PieceIndex> {
+    let (min_lat, min_lon, max_lat, max_lon) = viewport;
+    let center_lat = (min_lat + max_lat) / 2.0;
+    let center_lon = (min_lon + max_lon) / 2.0;
+    
+    // Load existing index if available
+    let known_pieces = load_ramanujan_index().unwrap_or_default();
+    
+    let mut heap = BinaryHeap::new();
+    
+    for piece in pieces {
+        if piece.intersects_bbox(min_lat, min_lon, max_lat, max_lon) {
+            let mut p = piece.clone();
+            let dist = p.distance_to_center(center_lat, center_lon);
+            p.priority = (dist * 10.0).min(255.0) as u8;
+            
+            // Boost priority if we have location data for this piece
+            if known_pieces.contains(&p.piece_id) {
+                p.priority = p.priority.saturating_sub(50); // Higher priority
+            }
+            
+            heap.push(p);
+        }
+    }
+    
+    let mut plan = Vec::new();
+    let mut total_bytes = 0u32;
+    
+    while let Some(piece) = heap.pop() {
+        if total_bytes + piece.byte_length > max_bytes {
+            break;
+        }
+        total_bytes += piece.byte_length;
+        plan.push(piece);
+    }
+    
+    println!("📋 Fetch plan: {} pieces, {}KB total", plan.len(), total_bytes / 1024);
+    plan
+}
+
+fn load_ramanujan_index() -> Result<Vec<u32>, Box<dyn std::error::Error>> {
+    use std::fs;
+    let data = fs::read_to_string("ramanujan-location-index.json")?;
+    let json: serde_json::Value = serde_json::from_str(&data)?;
+    
+    let pieces = json["locations"]
+        .as_array()
+        .ok_or("No locations array")?
+        .iter()
+        .filter_map(|loc| loc["piece"].as_u64().map(|p| p as u32))
+        .collect();
+    
+    Ok(pieces)
+}
         
         pieces.push(piece);
     }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door 17 - Hawkins Radiation</title>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    canvas { display: block; }
+    .info { position: absolute; top: 20px; left: 20px; color: #ffd700; 
+            font-family: monospace; z-index: 10; }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door 17 - Hawkins Radiation</h2>
+    <p>Cusp at Giza Pyramids [29.9792°N, 31.1342°E]</p>
+    <p>Prime: 17 | Symmetry: Heptadecagonal</p>
+  </div>
+  <canvas id="radiation"></canvas>
+  <script>
+    const canvas = document.getElementById('radiation');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    let time = 0;
+    
+    function drawRadiation() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 17 rays emanating from center
+      for (let i = 0; i < 17; i++) {
+        const angle = (i / 17) * Math.PI * 2 + time * 0.001;
+        const pulse = Math.sin(time * 0.01 + i) * 0.5 + 0.5;
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, `rgba(255, 215, 0, ${pulse})`);
+        gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-5, 0, 10, 400);
+        ctx.restore();
+      }
+      
+      time++;
+      requestAnimationFrame(drawRadiation);
+    }
+    
+    drawRadiation();
+  </script>
+</body>
+</html>

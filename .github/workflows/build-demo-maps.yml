@@ -21,6 +21,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install Rust and wasm-pack
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source $HOME/.cargo/env
+        curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    
+    - name: Build Rust to WASM
+      run: |
+        source $HOME/.cargo/env
+        wasm-pack build --target web --out-dir wasm-pkg
+        ls -lh wasm-pkg/
+    
     - name: Generate Leaflet map
       run: |
         mkdir -p public
@@ -229,4 +241,55 @@ jobs:
         # 5. Escaped RDFa version with semantics
         bash generate-rdfa.sh
         
-        ls -lh osm-torrent-*
+        # 6. WASM query interface
+        cp -r wasm-pkg public/
+        cat > public/query.html << 'WASM'
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OSM Query - WASM</title>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; padding: 20px; font-family: monospace; background: #1a1a1a; color: #0f0; }
+    input, button { padding: 10px; margin: 5px; background: #000; color: #0f0; border: 1px solid #0f0; }
+    button:hover { background: #0f0; color: #000; }
+    .result { background: #000; padding: 15px; margin: 10px 0; border: 1px solid #0f0; }
+  </style>
+</head>
+<body>
+  <h1>🦀 OSM Torrent Query</h1>
+  <input type="number" id="lat" value="10.9617" step="0.0001">
+  <input type="number" id="lon" value="79.3881" step="0.0001">
+  <input type="text" id="name" value="Kumbakonam">
+  <button onclick="query()">Query</button>
+  <div class="result" id="result"></div>
+  <script type="module">
+    import init, { query_location, init as wasmInit } from './wasm-pkg/osm_planet_torrent.js';
+    await init();
+    wasmInit();
+    window.query = () => {
+      const result = query_location(
+        parseFloat(document.getElementById('lat').value),
+        parseFloat(document.getElementById('lon').value),
+        document.getElementById('name').value
+      );
+      document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(JSON.parse(result), null, 2) + '</pre>';
+    };
+  </script>
+</body>
+</html>
+WASM
+        
+        ls -lh osm-torrent-* public/wasm-pkg/
+    
+    - name: Upload archives
+      uses: actions/upload-artifact@v3
+      with:
+        name: osm-torrent-archives
+        path: |
+          osm-torrent-web.tar.gz
+          osm-torrent-web.zip
+          osm-torrent-standalone.html
+          osm-torrent-README.md
+          osm-torrent-rdfa.html
+        retention-days: 90

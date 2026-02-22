@@ -1,21 +1,46 @@
-pub mod piece_download;
-pub mod piece_index;
-pub mod chunk_writer;
-pub mod print_storage;
+use wasm_bindgen::prelude::*;
+use serde::{Deserialize, Serialize};
 
-// Quality Management System
-pub mod model;
-pub mod planner;
-pub mod ooda;
-pub mod mcts;
-pub mod enlightenment;
-pub mod j_invariant;
-pub mod black_hole_fall;
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TorrentPiece {
+    pub piece_id: u32,
+    pub lat: f64,
+    pub lon: f64,
+    pub name: String,
+    pub shard: u32,
+}
 
-pub use model::{MonsterModel, MODEL};
-pub use planner::{Schedule, Task};
-pub use ooda::{OODALoop, OODACycle, Observation};
-pub use mcts::{MCTS, MCTSNode, Dao, Thinker, Prover};
-pub use enlightenment::{Buddha, LaoTzu, Unity, EnlightenedMCTS, EightfoldPath};
-pub use j_invariant::{JInvariant, BlackHole, HolographicMCTS};
-pub use black_hole_fall::{OSMNode, BlackHoleFall, HawkingRadiation, NodeShadow};
+#[wasm_bindgen]
+pub fn calculate_shard(piece_id: u32) -> u32 {
+    piece_id % 196883  // 71 * 59 * 47
+}
+
+#[wasm_bindgen]
+pub fn calculate_tile(lat: f64, lon: f64) -> String {
+    let tile_lat = (((lat + 90.0) * 256.0 / 180.0) as u32) % 71;
+    let tile_lon = (((lon + 180.0) * 256.0 / 360.0) as u32) % 59;
+    format!("tile_{}_{}", tile_lat, tile_lon)
+}
+
+#[wasm_bindgen]
+pub fn query_location(lat: f64, lon: f64, name: String) -> String {
+    let tile = calculate_tile(lat, lon);
+    let piece = ((lat + 90.0) * 100.0) as u32;
+    let shard = calculate_shard(piece);
+    
+    format!(
+        "{{\"name\":\"{}\",\"lat\":{},\"lon\":{},\"tile\":\"{}\",\"piece\":{},\"shard\":{}}}",
+        name, lat, lon, tile, piece, shard
+    )
+}
+
+#[wasm_bindgen]
+pub fn reduction_percent(fetched_mb: f64, total_gb: f64) -> f64 {
+    let total_mb = total_gb * 1024.0;
+    ((total_mb - fetched_mb) / total_mb) * 100.0
+}
+
+#[wasm_bindgen]
+pub fn init() {
+    console_error_panic_hook::set_once();
+}
