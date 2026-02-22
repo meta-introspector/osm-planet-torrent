@@ -82,3 +82,34 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+
+  archive:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: github-pages
+        path: ./site
+    
+    - name: Extract and create archive
+      run: |
+        cd site
+        tar -xzf artifact.tar.gz
+        cd ..
+        tar -czf osm-torrent-site.tar.gz -C site .
+        zip -r osm-torrent-site.zip site/
+        ls -lh osm-torrent-site.*
+    
+    - name: Upload site archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: osm-torrent-site
+        path: |
+          osm-torrent-site.tar.gz
+          osm-torrent-site.zip
+        retention-days: 30
