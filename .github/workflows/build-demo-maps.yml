@@ -225,3 +225,8 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+        
+        # 5. Escaped RDFa version with semantics
+        bash generate-rdfa.sh
+        
+        ls -lh osm-torrent-*
