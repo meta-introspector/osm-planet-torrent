@@ -96,7 +96,7 @@
             
             # Torrent clients
             aria2
-            transmission
+            transmission_4
             
             # Data processing
             jq
