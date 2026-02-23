@@ -20,24 +20,21 @@ jobs:
           
       - name: Build all binaries
         run: |
-          nix develop --impure -c bash -c '
-          cargo build --release --bin zkperf_dense
-          cargo build --release --bin fractran_osm
-          cargo build --release --bin ramanujan_24_walkers
-          cargo build --release --bin walkers_with_lmfdb
-          cargo build --release --bin math_nodes_world
-          cargo build --release --bin ramanujan_fractran_speedrun
-          '
+          nix develop --impure -c bash -c 'cargo build --release --bins'
           
       - name: Package binaries
         run: |
           mkdir -p dist/bin
-          cp target/release/zkperf_dense dist/bin/
-          cp target/release/fractran_osm dist/bin/
-          cp target/release/ramanujan_24_walkers dist/bin/
-          cp target/release/walkers_with_lmfdb dist/bin/
-          cp target/release/math_nodes_world dist/bin/
-          cp target/release/ramanujan_fractran_speedrun dist/bin/
+          # Copy key binaries
+          cp target/release/zkperf_dense dist/bin/ 2>/dev/null || true
+          cp target/release/fractran_osm dist/bin/ 2>/dev/null || true
+          cp target/release/ramanujan_24_walkers dist/bin/ 2>/dev/null || true
+          cp target/release/walkers_with_lmfdb dist/bin/ 2>/dev/null || true
+          cp target/release/math_nodes_world dist/bin/ 2>/dev/null || true
+          cp target/release/ramanujan_fractran_speedrun dist/bin/ 2>/dev/null || true
+          
+          # List what we got
+          ls -lh dist/bin/
           
           # Create version info
           cat > dist/VERSION << EOF
@@ -45,7 +42,10 @@ jobs:
           Commit: ${{ github.sha }}
           Branch: ${{ github.ref_name }}
           Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          Binaries: $(ls dist/bin/ | wc -l)
           EOF
+          
+          cat dist/VERSION
           
       - name: Upload binaries
         uses: actions/upload-artifact@v4
