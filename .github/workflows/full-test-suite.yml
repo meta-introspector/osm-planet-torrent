@@ -20,7 +20,15 @@ jobs:
           
       - name: Build all binaries
         run: |
-          nix develop --impure -c bash -c 'cargo build --release --bins'
+          nix develop --impure -c bash -c '
+          # Build only non-wasm binaries
+          cargo build --release --bin zkperf_dense
+          cargo build --release --bin fractran_osm
+          cargo build --release --bin ramanujan_24_walkers
+          cargo build --release --bin walkers_with_lmfdb
+          cargo build --release --bin math_nodes_world
+          cargo build --release --bin ramanujan_fractran_speedrun
+          '
           
       - name: Package binaries
         run: |
