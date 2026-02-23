@@ -156,10 +156,27 @@ jobs:
       - name: Make executable
         run: chmod +x dist/bin/*
         
+      - name: Download test data
+        run: |
+          # Install tools
+          pip install internetarchive datasets huggingface_hub
+          
+          # Download LMFDB data from Archive.org
+          ia download lmfdb-monster-71-shards lmfdb_71_shards.json || \
+          wget https://archive.org/download/lmfdb-monster-71-shards/lmfdb_71_shards.json || \
+          echo '{"shards": 49, "functions": 75, "nodes": []}' > lmfdb_71_shards.json
+          
+          mkdir -p spool
+          mv lmfdb_71_shards.json spool/ 2>/dev/null || cp lmfdb_71_shards.json spool/
+          
+          echo "✅ Test data prepared"
+          
       - name: Create test LMFDB data
         run: |
+          # Ensure spool directory exists with fallback data
           mkdir -p spool
-          cat > spool/lmfdb_71_shards.json << 'EOF'
+          if [ ! -f spool/lmfdb_71_shards.json ]; then
+            cat > spool/lmfdb_71_shards.json << 'EOF'
           {
             "shards": 49,
             "functions": 75,
@@ -170,6 +187,9 @@ jobs:
             ]
           }
           EOF
+          fi
+          
+          echo "✅ LMFDB data ready"
           
       - name: Test 24 walkers
         run: |
