@@ -8,7 +8,7 @@ from datasets import Dataset, DatasetDict
 from huggingface_hub import HfApi, create_repo
 
 # Configuration
-HF_USERNAME = "meta-introspector"
+HF_USERNAME = "h4"
 DATASETS = {
     "lmfdb-monster-71": {
         "description": "L-functions and Modular Forms Database mapped to Monster Group 71 shards",
@@ -152,10 +152,13 @@ def main():
     print("==========================================")
     
     # Check authentication
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        print("⚠️  Set HF_TOKEN environment variable")
-        print("   Get token from: https://huggingface.co/settings/tokens")
+    try:
+        api = HfApi()
+        user = api.whoami()
+        print(f"✅ Authenticated as: {user['name']}")
+    except Exception as e:
+        print(f"⚠️  Authentication error: {e}")
+        print("   Run: huggingface-cli login")
         return
     
     # Upload each dataset
