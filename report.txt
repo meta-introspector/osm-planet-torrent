@@ -1,0 +1,138 @@
+
+
+You’ll get better throughput and less pain if you treat Parquet as a batched, single-writer sink and parallelize *before* the writer, rather than trying to have 24 threads incrementally append to one file.
+
+## High-level pattern
+
+- Use a bounded Crossbeam channel (or deque) as a queue of “row batches”.
+- Have N worker threads (e.g. 20–24) producing `RecordBatch`es (or Arrow arrays / row buffers).
+- Have exactly one thread own the Parquet writer and pull batches off the channel and write them sequentially.
+- Tune batch size and queue depth until you saturate disk and a good fraction of CPU. [surister](https://surister.dev/blog/ingesting-parquet-cratedb)
+
+This matches what high‑perf ingest pipelines do: they parallelize CPU work (decode, transform, encode) and keep I/O serialized but continuously fed. [arrow.apache](https://arrow.apache.org/docs/cpp/parquet.html)
+
+## Concrete Rust sketch
+
+Assuming Arrow + `parquet` crates (or the Arrow Rust Parquet writer):
+
+```rust
+use std::{sync::Arc, thread};
+use crossbeam::channel;
+use arrow_array::RecordBatch;
+use parquet::arrow::ArrowWriter;
+
+fn main() -> anyhow::Result<()> {
+    let num_workers = 24;
+    let (tx, rx) = channel::bounded::<RecordBatch>(num_workers * 2);
+
+    // Spawn workers
+    for _ in 0..num_workers {
+        let tx = tx.clone();
+        thread::spawn(move || {
+            // some loop that pulls from your source and produces batches
+            while let Some(batch) = make_next_batch() {
+                if tx.send(batch).is_err() {
+                    break; // writer gone
+                }
+            }
+        });
+    }
+    drop(tx); // so writer sees EOF when all workers finish
+
+    // Writer thread (can be main)
+    let file = std::fs::File::create("out.parquet")?;
+    let mut writer = ArrowWriter::try_new(file, /* schema */ Arc::new(schema()), None)?;
+
+    for batch in rx {
+        writer.write(&batch)?;
+    }
+
+    writer.close()?; // flushes footer, etc.
+    Ok(())
+}
+```
+
+Key points:
+
+- Only the writer thread touches `ArrowWriter` / Parquet file.
+- Backpressure comes from bounded channel capacity.
+- Workers can be CPU‑bound (compression, transforms) and you can scale up to 24 cores.
+
+## Why not multi-threaded append to one file?
+
+- Parquet files are organized into row groups and column chunks plus a footer; concurrent appends are non‑trivial without an internal coordinator and locking. [arrow.apache](https://arrow.apache.org/docs/cpp/parquet.html)
+- Most implementations assume a single writer; safe concurrent writes typically mean “multiple files, merged later” rather than true incremental multi-writer. [arrow.apache](https://arrow.apache.org/docs/cpp/parquet.html)
+- You’ll likely fight internal locks and lose more than you gain.
+
+If you want *true* multi-writer concurrency, write one Parquet file per worker (partitioned by e.g. date or shard), then rely on your query engine’s partition discovery rather than forcing 24 threads into one file. [surister](https://surister.dev/blog/ingesting-parquet-cratedb)
+
+## Tuning for a 24‑core CPU
+
+- Batch size: try 20k–100k rows per `RecordBatch`; larger batches improve compression and write efficiency up to a point. [surister](https://surister.dev/blog/ingesting-parquet-cratedb)
+- Number of workers: start at `num_cpus::get_physical()`; if workloads are I/O-heavy you can oversubscribe slightly. [users.rust-lang](https://users.rust-lang.org/t/parrallel-io-data-processing-fork-join-thread-spawn-or-rayon-or-other/64687)
+- Channel size: a few multiples of worker count so the writer is rarely idle but RAM doesn’t balloon.
+
+If you share a bit more about your current crate (Arrow vs direct `parquet`), data source, and where it’s currently bottlenecking (CPU vs disk vs network), I can sketch a more concrete Crossbeam-based pipeline.
+
+You still want “one owner per file” even if you have many files that are being appended to over time.
+
+## Core pattern with many files
+
+- Maintain one long-lived writer handle per Parquet file (e.g. one `ArrowWriter<File>` per output shard). [arrow.apache](https://arrow.apache.org/rust/parquet/arrow/arrow_writer/struct.ArrowWriter.html)
+- Route batches to the appropriate writer via channels, but never let more than one thread own a given writer at a time. [docs](https://docs.rs/parquet/latest/parquet/arrow/index.html)
+- Appending = sending more `RecordBatch`es to the same writer; the file is only finalized when that writer is closed. [stackoverflow](https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file)
+
+### Architecture sketch
+
+- Have a dispatcher that decides “batch X goes to file F_i” (e.g. based on partition key).
+- For each output file \(F_i\), spawn a dedicated writer task/thread that:
+  - Opens `ArrowWriter` once.
+  - Receives batches for that file on a dedicated `Receiver<RecordBatch>`.
+  - Calls `writer.write(&batch)` as they arrive.
+  - Calls `writer.close()` when its channel is closed. [arrow.apache](https://arrow.apache.org/rust/src/parquet/arrow/arrow_writer/mod.rs.html)
+
+Pseudocode:
+
+```rust
+struct FileSink {
+    tx: crossbeam::channel::Sender<RecordBatch>,
+}
+
+fn spawn_file_sink(path: &str, schema: SchemaRef) -> FileSink {
+    let (tx, rx) = crossbeam::channel::bounded::<RecordBatch>(64);
+    let path = path.to_string();
+    std::thread::spawn(move || -> anyhow::Result<()> {
+        let file = std::fs::File::options()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&path)?;
+        let mut writer = ArrowWriter::try_new(file, schema, None)?;
+        for batch in rx {
+            writer.write(&batch)?;
+        }
+        writer.close()?;
+        Ok(())
+    });
+    FileSink { tx }
+}
+
+// dispatcher:
+let sinks: HashMap<PartitionKey, FileSink> = /* create one per output file */;
+
+fn send_batch(batch: RecordBatch) {
+    let key = partition_key(&batch);
+    let sink = sinks.get(&key).unwrap();
+    sink.tx.send(batch).unwrap();
+}
+```
+
+This gives you:
+
+- Many files, each with incremental appends.
+- Parallelism: up to `min(num_files, cores)` writer threads, plus your upstream worker pool.
+- No unsynchronized multi-threaded mutation of a single Parquet writer, which Parquet’s structure is not designed for. [github](https://github.com/duckdb/duckdb/discussions/3870)
+
+If you need to *reopen* and continue appending to an already-closed Parquet file later, that’s not supported directly; you generally read + rewrite or treat each “append session” as a new file in the same partition and let the downstream engine union them. [stackoverflow](https://stackoverflow.com/questions/78649891/give-arrow-packages-write-parquet-does-not-support-append-is-there-any-alternat)
+
+

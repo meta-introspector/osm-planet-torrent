@@ -1,0 +1,38 @@
+digraph InstructionFlow {
+    rankdir=TB;
+    node [shape=box, style=filled, fillcolor=lightblue, fontname="Courier"];
+    edge [fontname="Courier", fontsize=10];
+    
+    // Title
+    labelloc="t";
+    label="OSM Black Hole Fall - Instruction Flow\nConformal Arrows Toward Singularity";
+    fontsize=16;
+    
+    "0x555555555000" [label="0x555555555000\npush rbp\nSave base pointer", fillcolor=lightblue];
+    "0x555555555001" [label="0x555555555001\nmov rbp, rsp\nSet up stack frame", fillcolor=lightblue];
+    "0x555555555004" [label="0x555555555004\nsub rsp, 32\nAllocate stack space", fillcolor=lightblue];
+    "0x555555555008" [label="0x555555555008\nmov rax, [rbp-8]\nLoad node pointer", fillcolor=lightblue];
+    "0x55555555500c" [label="0x55555555500c\ntest rax, rax\nCheck if null", fillcolor=lightblue];
+    "0x55555555500f" [label="0x55555555500f\nje .L_null\nJump if null", fillcolor=lightyellow];
+    "0x555555555014" [label="0x555555555014\ncall calculate_hawking_radiation\nCompute Hawking radiation", fillcolor=lightcoral];
+    "0x555555555019" [label="0x555555555019\nmov [rbp-16], rax\nStore radiation result", fillcolor=lightblue];
+    "0x55555555501d" [label="0x55555555501d\ncall render_shadow\nRender ASCII shadow", fillcolor=lightcoral];
+    "0x555555555020" [label="0x555555555020\nxor eax, eax\nReturn 0 (null case)", fillcolor=lightblue];
+    "0x555555555022" [label="0x555555555022\nadd rsp, 32\nDeallocate stack", fillcolor=lightblue];
+    "0x555555555026" [label="0x555555555026\npop rbp\nRestore base pointer", fillcolor=lightblue];
+    "0x555555555027" [label="0x555555555027\nret \nReturn to caller", fillcolor=lightgreen];
+
+    "0x555555555000" -> "0x555555555001" [label="next"];
+    "0x555555555001" -> "0x555555555004" [label="next"];
+    "0x555555555004" -> "0x555555555008" [label="next"];
+    "0x555555555008" -> "0x55555555500c" [label="next"];
+    "0x55555555500c" -> "0x55555555500f" [label="next"];
+    "0x55555555500c" -> "0x555555555020" [label="next"];
+    "0x55555555500f" -> "0x555555555020" [label="branch"];
+    "0x555555555014" -> "0x555555555019" [label="call"];
+    "0x555555555019" -> "0x55555555501d" [label="next"];
+    "0x55555555501d" -> "0x555555555022" [label="call"];
+    "0x555555555020" -> "0x555555555022" [label="next"];
+    "0x555555555022" -> "0x555555555026" [label="next"];
+    "0x555555555026" -> "0x555555555027" [label="next"];
+}

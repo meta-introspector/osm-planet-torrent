@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OSM Torrent Pluck - Escaped RDFa</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    #map { height: 70vh; }
+    .rdfa-info { padding: 20px; background: #f5f5f5; }
+  </style>
+</head>
+<body vocab="http://schema.org/" 
+      prefix="geo: http://www.w3.org/2003/01/geo/wgs84_pos#
+              doap: http://usefulinc.com/ns/doap#
+              dc: http://purl.org/dc/terms/
+              erdfa: https://escaped-rdfa.github.io/namespace#">
+
+  <div typeof="SoftwareApplication" about="https://github.com/meta-introspector/osm-planet-torrent">
+    <h1 property="name">OSM Torrent Pluck Demo</h1>
+    
+    <div property="description">
+      Interactive map demonstrating 99.995% data reduction by selectively downloading 
+      a single 4MB piece (13668) from an 86GB OpenStreetMap planet torrent file.
+    </div>
+
+    <div property="applicationCategory">Mapping</div>
+    <div property="operatingSystem">Web Browser</div>
+    
+    <div rel="codeRepository" resource="https://github.com/meta-introspector/osm-planet-torrent"></div>
+    
+    <div rel="author">
+      <div typeof="Person">
+        <span property="name">Meta Introspector</span>
+        <div property="email" content="erdfa@solfunmeme.com"></div>
+      </div>
+    </div>
+
+    <!-- Torrent Piece Metadata -->
+    <div typeof="DigitalDocument" about="#piece-13668">
+      <span property="name">OSM Planet Piece 13668</span>
+      <div property="encodingFormat">application/x-protobuf</div>
+      <div property="contentSize" content="4194304">4MB</div>
+      
+      <div rel="spatialCoverage">
+        <div typeof="Place" about="#kumbakonam">
+          <span property="name">Kumbakonam</span>
+          <div property="description">Ramanujan's birthplace</div>
+          
+          <div rel="geo">
+            <div typeof="GeoCoordinates">
+              <meta property="latitude" content="10.9617" />
+              <meta property="longitude" content="79.3881" />
+            </div>
+          </div>
+          
+          <div rel="sameAs" resource="https://www.wikidata.org/wiki/Q1011807"></div>
+        </div>
+      </div>
+      
+      <div property="isPartOf" typeof="Dataset">
+        <span property="name">OpenStreetMap Planet</span>
+        <div property="contentSize" content="92274688000">86GB</div>
+        <div property="encodingFormat">application/x-protobuf</div>
+        <div rel="distribution">
+          <div typeof="DataDownload">
+            <div property="contentUrl" content="https://planet.osm.org/pbf/planet-latest.osm.pbf"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reduction Statistics -->
+    <div typeof="Observation" about="#reduction">
+      <span property="name">Data Reduction</span>
+      <div property="value" content="99.995">99.995%</div>
+      <div property="description">
+        Downloaded 4MB instead of 86GB by using selective torrent piece download
+      </div>
+    </div>
+
+    <!-- Share URL with compressed RDFa -->
+    <div rel="erdfa:embedded">
+      <pre property="erdfa:content">
+&lt;div vocab="http://schema.org/" typeof="Map"&gt;
+  &lt;span property="name"&gt;Kumbakonam OSM Map&lt;/span&gt;
+  &lt;div property="geo" typeof="GeoCoordinates"&gt;
+    &lt;meta property="latitude" content="10.9617" /&gt;
+    &lt;meta property="longitude" content="79.3881" /&gt;
+  &lt;/div&gt;
+  &lt;div property="about" typeof="Place"&gt;
+    &lt;span property="name"&gt;Ramanujan House&lt;/span&gt;
+    &lt;link property="sameAs" href="https://www.wikidata.org/wiki/Q1011807" /&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+      </pre>
+    </div>
+
+    <!-- Compressed share URL -->
+    <div property="url" typeof="URL">
+      <a href="data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PHRpdGxlPk9TTSBUb3JyZW50IE1hcDwvdGl0bGU+PGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJodHRwczovL3VucGtnLmNvbS9sZWFmbGV0QDEuOS40L2Rpc3QvbGVhZmxldC5jc3MiLz48c2NyaXB0IHNyYz0iaHR0cHM6Ly91bnBrZy5jb20vbGVhZmxldEAxLjkuNC9kaXN0L2xlYWZsZXQuanMiPjwvc2NyaXB0PjwvaGVhZD48Ym9keT48ZGl2IGlkPSJtYXAiIHN0eWxlPSJoZWlnaHQ6MTAwdmgiPjwvZGl2PjxzY3JpcHQ+dmFyIG09TC5tYXAoJ21hcCcpLnNldFZpZXcoWzEwLjk2MTcsNzkuMzg4MV0sMTMpO0wudGlsZUxheWVyKCdodHRwczovL3tzfS50aWxlLm9wZW5zdHJlZXRtYXAub3JnL3t6fS97eH0ve3l9LnBuZycpLmFkZFRvKG0pO0wubWFya2VyKFsxMC45NjE3LDc5LjM4ODFdKS5iaW5kUG9wdXAoJzxiPlJhbWFudWphbiBIb3VzZTwvYj4nKS5hZGRUbyhtKS5vcGVuUG9wdXAoKTs8L3NjcmlwdD48L2JvZHk+PC9odG1sPg==">
+        Share URL (base64 compressed)
+      </a>
+    </div>
+  </div>
+
+  <div id="map"></div>
+  
+  <div class="rdfa-info">
+    <h2>Semantic Metadata</h2>
+    <p>This page includes Escaped RDFa markup for:</p>
+    <ul>
+      <li>Software application metadata</li>
+      <li>Geographic coordinates (Schema.org)</li>
+      <li>Torrent piece information</li>
+      <li>Data reduction statistics</li>
+      <li>Compressed share URL</li>
+    </ul>
+    <p>Extract with: <code>rapper -i rdfa osm-torrent-rdfa.html</code></p>
+  </div>
+
+  <script>
+    var map = L.map('map').setView([10.9617, 79.3881], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([10.9617, 79.3881]).bindPopup('<b>Ramanujan House</b><br>Piece 13668').addTo(map).openPopup();
+    L.circle([10.9617, 79.3881], {color: '#ff7800', fillOpacity: 0.2, radius: 5000}).addTo(map);
+  </script>
+</body>
+</html>

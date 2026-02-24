@@ -1,0 +1,29 @@
+@startuml
+title OSM Black Hole Fall - Instruction Flow
+skinparam backgroundColor #0f0f1e
+skinparam defaultFontColor #ffffff
+skinparam activity {
+  BackgroundColor #1a1a2e
+  BorderColor #4a90e2
+  FontColor #ffffff
+}
+
+start
+
+:⚪ **0x555555555000**\npush rbp\nSave base pointer;
+:⚪ **0x555555555001**\nmov rbp, rsp\nSet up stack frame;
+:⚪ **0x555555555004**\nsub rsp, 32\nAllocate stack space;
+:⚪ **0x555555555008**\nmov rax, [rbp-8]\nLoad node pointer;
+:⚪ **0x55555555500c**\ntest rax, rax\nCheck if null;
+if (🔶 **0x55555555500f**\nje .L_null\nJump if null) then (yes)
+:🔵 **0x555555555014**\ncall calculate_hawking_radiation\nCompute Hawking radiation;
+:⚪ **0x555555555019**\nmov [rbp-16], rax\nStore radiation result;
+:🔵 **0x55555555501d**\ncall render_shadow\nRender ASCII shadow;
+:⚪ **0x555555555020**\nxor eax, eax\nReturn 0 (null case);
+:⚪ **0x555555555022**\nadd rsp, 32\nDeallocate stack;
+:⚪ **0x555555555026**\npop rbp\nRestore base pointer;
+:🟢 **0x555555555027**\nret \nReturn to caller;
+
+stop
+
+@enduml

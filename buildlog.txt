@@ -1,0 +1,79 @@
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+   Compiling osm-planet-torrent v0.1.0 (/home/mdupont/projects/osm-planet-torrent)
+warning: unused import: `std::process::Command`
+ --> src/download.rs:1:5
+  |
+1 | use std::process::Command;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::fs`
+ --> src/download.rs:2:5
+  |
+2 | use std::fs;
+  |     ^^^^^^^
+
+warning: unused import: `std::io::Read`
+ --> src/download.rs:3:5
+  |
+3 | use std::io::Read;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `extract_wikidata_from_results` and `recursive_wikidata_crawl`
+  --> src/main.rs:18:15
+   |
+18 | use crawler::{extract_wikidata_from_results, recursive_wikidata_crawl};
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `BoundingBox` and `extract_wikidata_from_pbf`
+  --> src/main.rs:20:16
+   |
+20 | use download::{BoundingBox, extract_wikidata_from_pbf};
+   |                ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no variant or associated item named `from_file` found for enum `librqbit::AddTorrent<'a>` in the current scope
+   --> src/stream.rs:17:21
+    |
+ 17 |         AddTorrent::from_file(torrent_file),
+    |                     ^^^^^^^^^ variant or associated item not found in `librqbit::AddTorrent<'_>`
+    |
+note: if you're trying to build a new `librqbit::AddTorrent<'_>` consider using one of the following associated functions:
+      librqbit::AddTorrent::<'a>::from_cli_argument
+      librqbit::AddTorrent::<'a>::from_url
+      librqbit::AddTorrent::<'a>::from_bytes
+      librqbit::AddTorrent::<'a>::from_local_filename
+   --> /home/mdupont/projects/osm-planet-torrent/vendor/rqbit/crates/librqbit/src/session.rs:344:5
+    |
+344 |     pub fn from_cli_argument(path: &'a str) -> anyhow::Result<Self> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+354 |     pub fn from_url(url: impl Into<Cow<'a, str>>) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+358 |     pub fn from_bytes(bytes: impl Into<Bytes>) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+364 |     pub fn from_local_filename(filename: &str) -> anyhow::Result<Self> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: there is an associated function `from_url` with a similar name
+    |
+ 17 -         AddTorrent::from_file(torrent_file),
+ 17 +         AddTorrent::from_url(torrent_file),
+    |
+
+warning: unused variable: `piece_length`
+  --> src/main.rs:40:79
+   |
+40 | fn pieces_in_radius(lat: f64, lon: f64, radius_miles: f64, num_pieces: usize, piece_length: i64) -> Vec<usize> {
+   |                                                                               ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_piece_length`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `osm-planet-torrent` (bin "osm-planet-torrent") generated 6 warnings
+error: could not compile `osm-planet-torrent` (bin "osm-planet-torrent") due to 1 previous error; 6 warnings emitted

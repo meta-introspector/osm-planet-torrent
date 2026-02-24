@@ -1,0 +1,2 @@
+% MiniZinc Data File: Sample input
+num_nodes = 7100;  % 100 nodes per shard

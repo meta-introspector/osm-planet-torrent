@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door 5 - Himalayas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; }
+    #map { height: 100vh; width: 100%; }
+    .info { 
+      position: absolute; top: 20px; left: 60px; z-index: 1000;
+      background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px;
+      color: #00ff00; font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door 5 - Himalayas</h2>
+    <p>🏔️ Location: [28.0°, 84.0°]</p>
+    <p>10-Fold Way: Level 5</p>
+    <p><a href="index.html" style="color: #00ff00;">← Back to Doors</a></p>
+  </div>
+  <div id="map"></div>
+  <script>
+    const map = L.map('map').setView([28.0, 84.0], 5 === 0 ? 2 : 10);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // Marker
+    const marker = L.marker([28.0, 84.0]).addTo(map);
+    marker.bindPopup('<b>Himalayas</b><br>Door 5<br>🏔️').openPopup();
+    
+    // Circle
+    L.circle([28.0, 84.0], {
+      color: '#00ff00',
+      fillColor: '#00ff00',
+      fillOpacity: 0.2,
+      radius: 50000
+    }).addTo(map);
+  </script>
+</body>
+</html>

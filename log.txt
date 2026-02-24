@@ -1,0 +1,36 @@
+🔍 Phase 2: Fetching piece 13668...
+🔗 Downloading piece 13668 only...
+📦 Torrent: Some("planet-260209.osm.pbf")
+   Total pieces: 21763
+   Piece length: 4096 KB
+   Target piece: 13668
+
+⏳ Waiting for torrent to start...
+⏳ Waiting for piece 13668 to download...
+....📊 initializing: 13.32% (11.3Gi / 85.0Gi)
+.....📊 initializing: 22.92% (19.4Gi / 85.0Gi)
+.....📊 initializing: 32.54% (27.6Gi / 85.0Gi)
+.....📊 initializing: 42.19% (35.8Gi / 85.0Gi)
+.  C-c C-c...  C-c C-c.📊 initializing: 51.80% (44.0Gi / 85.0Gi)
+...  C-c C-c.
+.📊 initializing: 61.43% (52.2Gi / 85.0Gi)
+.  C-c C-c....📊 initializing: 71.48% (60.7Gi / 85.0Gi)
+.....📊 initializing: 81.49% (69.2Gi / 85.0Gi)
+.....📊 initializing: 91.47% (77.7Gi / 85.0Gi)
+.....📊 live: 0.14% (122.8Mi / 85.0Gi) [down speed: 11.20 MiB/s, eta: 2h 9m, up speed: 0.00 MiB/s]
+.....📊 live: 0.19% (166.8Mi / 85.0Gi) [down speed: 9.75 MiB/s, eta: 2h 28m, up speed: 0.00 MiB/s]
+.....📊 live: 0.24% (206.8Mi / 85.0Gi) [down speed: 10.55 MiB/s, eta: 2h 17m, up speed: 0.00 MiB/s]
+..  C-c C-c...📊 live: 0.31% (266.8Mi / 85.0Gi) [down speed: 9.31 MiB/s, eta: 2h 35m, up speed: 0.00 MiB/s]
+.....📊 live: 0.37% (322.8Mi / 85.0Gi) [down speed: 11.20 MiB/s, eta: 2h 9m, up speed: 0.00 MiB/s]
+.....📊 live: 0.44% (382.8Mi / 85.0Gi) [down speed: 11.25 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.50% (434.8Mi / 85.0Gi) [down speed: 11.23 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.56% (490.8Mi / 85.0Gi) [down speed: 11.48 MiB/s, eta: 2h 5m, up speed: 0.00 MiB/s]
+.....📊 live: 0.62% (538.8Mi / 85.0Gi) [down speed: 11.23 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.69% (598.8Mi / 85.0Gi) [down speed: 11.23 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.75% (654.8Mi / 85.0Gi) [down speed: 11.54 MiB/s, eta: 2h 4m, up speed: 0.00 MiB/s]
+.....📊 live: 0.82% (714.8Mi / 85.0Gi) [down speed: 11.24 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.88% (762.8Mi / 85.0Gi) [down speed: 11.20 MiB/s, eta: 2h 8m, up speed: 0.00 MiB/s]
+.....📊 live: 0.95% (826.8Mi / 85.0Gi) [down speed: 11.23 MiB/s, eta: 2h 7m, up speed: 0.00 MiB/s]
+.Self exited with status: exit status: 124
+> ls -latr osm-data/
+

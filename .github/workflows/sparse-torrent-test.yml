@@ -1,0 +1,158 @@
+name: Sparse Torrent + ZKPerf Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      piece:
+        description: 'OSM piece number (0-86000)'
+        required: true
+        default: '13668'
+      limit:
+        description: 'Node limit'
+        required: false
+        default: '10'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/bin/zkperf_dense.rs'
+      - 'src/bin/fractran_osm.rs'
+      - '.github/workflows/sparse-torrent-test.yml'
+
+jobs:
+  sparse-extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          
+      - name: Setup Nix environment
+        run: |
+          nix develop --impure -c bash -c "rustc --version && cargo --version && aria2c --version"
+      
+      - name: Build zkperf_dense
+        run: |
+          nix develop --impure -c cargo build --release --bin zkperf_dense
+          nix develop --impure -c cargo build --release --bin fractran_osm
+          
+      - name: Download OSM torrent metadata
+        run: |
+          # Get torrent file
+          wget -q https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent \
+            -O planet.torrent
+          
+      - name: Calculate piece offset
+        id: calc
+        run: |
+          PIECE=${{ inputs.piece }}
+          PIECE_SIZE=16777216  # 16MB pieces
+          OFFSET=$((PIECE * PIECE_SIZE))
+          LENGTH=$PIECE_SIZE
+          
+          echo "piece=$PIECE" >> $GITHUB_OUTPUT
+          echo "offset=$OFFSET" >> $GITHUB_OUTPUT
+          echo "length=$LENGTH" >> $GITHUB_OUTPUT
+          
+          echo "📊 Piece: $PIECE"
+          echo "📍 Offset: $OFFSET bytes"
+          echo "📏 Length: $LENGTH bytes"
+          
+      - name: Sparse download via aria2
+        run: |
+          nix develop --impure -c bash -c '
+          aria2c \
+            --seed-time=0 \
+            --max-upload-limit=1K \
+            --select-file=1 \
+            --file-allocation=none \
+            --bt-save-metadata=true \
+            --bt-metadata-only=false \
+            --bt-enable-lpd=false \
+            --enable-dht=true \
+            --bt-max-peers=50 \
+            --max-connection-per-server=5 \
+            --split=5 \
+            --min-split-size=1M \
+            --piece-length=16M \
+            --continue=true \
+            --max-tries=3 \
+            --retry-wait=5 \
+            --timeout=60 \
+            --dir=. \
+            --out=planet-sparse.osm.pbf \
+            planet.torrent || echo "⚠️  Partial download (expected for sparse)"
+          '
+          
+      - name: Extract with zkperf_dense
+        run: |
+          PIECE=${{ steps.calc.outputs.piece }}
+          LIMIT=${{ inputs.limit }}
+          
+          # Run zkperf_dense on the sparse file
+          ./target/release/zkperf_dense \
+            --input planet-sparse.osm.pbf \
+            --output ramanujan_nodes.geojson \
+            --piece $PIECE \
+            --limit $LIMIT || echo "⚠️  Extraction attempted"
+          
+          # Show results if successful
+          if [ -f ramanujan_nodes.geojson ]; then
+            echo "✅ Extracted nodes:"
+            jq '.features | length' ramanujan_nodes.geojson
+            jq '.features[0]' ramanujan_nodes.geojson
+          fi
+          
+          if [ -f ramanujan_nodes.geojson.witness.json ]; then
+            echo "🔐 ZK Witness:"
+            cat ramanujan_nodes.geojson.witness.json
+          fi
+          
+      - name: FRACTRAN encode
+        run: |
+          PIECE=${{ steps.calc.outputs.piece }}
+          
+          ./target/release/fractran_osm \
+            --piece $PIECE \
+            --output fractran_state.json || echo "⚠️  FRACTRAN encoding attempted"
+          
+          if [ -f fractran_state.json ]; then
+            echo "🔢 FRACTRAN state:"
+            cat fractran_state.json
+          fi
+          
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sparse-extraction-piece-${{ steps.calc.outputs.piece }}
+          path: |
+            ramanujan_nodes.geojson
+            ramanujan_nodes.geojson.witness.json
+            fractran_state.json
+          retention-days: 7
+          
+      - name: Comment results
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "## 🎭 Sparse Torrent Extraction Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Piece**: ${{ steps.calc.outputs.piece }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Offset**: ${{ steps.calc.outputs.offset }} bytes" >> $GITHUB_STEP_SUMMARY
+          echo "**Shard**: $(((${{ steps.calc.outputs.piece }} * 71) / 86000))" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f ramanujan_nodes.geojson ]; then
+            NODE_COUNT=$(jq '.features | length' ramanujan_nodes.geojson)
+            echo "✅ **Extracted**: $NODE_COUNT nodes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️  **Status**: Extraction incomplete" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f ramanujan_nodes.geojson.witness.json ]; then
+            WITNESS=$(jq -r '.sha256' ramanujan_nodes.geojson.witness.json)
+            echo "🔐 **Witness**: \`${WITNESS:0:16}...\`" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,73 @@
+name: Build Static Maps from Torrents
+
+on:
+  push:
+    branches: [main, feature/*]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install torrent client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y transmission-cli aria2
+    
+    - name: Download torrents from Archive.org
+      run: |
+        # Download torrent files (metadata only, ~2KB each)
+        wget -q https://archive.org/download/osm-planet-geo-shards-monster/osm-planet-geo-shards-monster_archive.torrent
+        wget -q https://archive.org/download/osm-planet-monster-shards-monster/osm-planet-monster-shards-monster_archive.torrent
+        
+        # Download minimal data via torrent (select files only)
+        aria2c --seed-time=0 --max-overall-download-limit=10M \
+          --select-file=1-10 \
+          osm-planet-geo-shards-monster_archive.torrent
+    
+    - name: Build static map generator
+      run: |
+        cargo build --release --bin static_map_generator
+    
+    - name: Generate static maps
+      run: |
+        # Process downloaded shards into static HTML/JS maps
+        ./target/release/static_map_generator \
+          --input geo_shards/ \
+          --output docs/maps/ \
+          --format geojson \
+          --compress
+    
+    - name: Build GitHub Pages
+      run: |
+        # Copy static assets
+        cp -r docs/maps public/
+        cp index.html public/
+        
+        # Generate index with torrent links
+        cat > public/torrents.html << 'HTML'
+        <!DOCTYPE html>
+        <html>
+        <head><title>OSM Planet Torrents</title></head>
+        <body>
+          <h1>Download via Torrent</h1>
+          <ul>
+            <li><a href="https://archive.org/download/osm-planet-geo-shards-monster/osm-planet-geo-shards-monster_archive.torrent">geo_shards</a></li>
+            <li><a href="https://archive.org/download/osm-planet-monster-shards-monster/osm-planet-monster-shards-monster_archive.torrent">monster_shards</a></li>
+          </ul>
+        </body>
+        </html>
+        HTML
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./public
+        cname: osm.monster.local

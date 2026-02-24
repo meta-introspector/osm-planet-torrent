@@ -1,0 +1,111 @@
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+warning: unused import: `std::fs::File`
+ --> src/chunk_writer.rs:4:5
+  |
+4 | use std::fs::File;
+  |     ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `file_id`
+  --> src/print_storage.rs:56:26
+   |
+56 |     fn pwrite_all(&self, file_id: usize, offset: u64, buf: &[u8]) -> Result<()> {
+   |                          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_id`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: for loop over a `Result`. This is more readably written as an `if let` statement
+  --> src/print_storage.rs:24:24
+   |
+24 |           for element in reader.par_map_reduce(
+   |  ________________________^
+25 | |             |element| {
+26 | |                 let mut coords = Vec::new();
+27 | |                 match element {
+...  |
+36 | |             |mut a, b| { a.extend(b); a }
+37 | |         ) {
+   | |_________^
+   |
+   = note: `#[warn(for_loops_over_fallibles)]` on by default
+help: to check pattern in a loop use `while let`
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         while let Ok(element) = reader.par_map_reduce(
+   |
+help: consider using `if let` to clear intent
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         if let Ok(element) = reader.par_map_reduce(
+   |
+
+warning: `osm-planet-torrent` (lib) generated 3 warnings (run `cargo fix --lib -p osm-planet-torrent` to apply 1 suggestion)
+warning: unused import: `crossbeam::thread`
+  --> src/bin/geo_split.rs:10:5
+   |
+10 | use crossbeam::thread;
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: for loop over a `Result`. This is more readably written as an `if let` statement
+   --> src/bin/geo_split.rs:80:20
+    |
+ 80 |       for element in reader.par_map_reduce(
+    |  ____________________^
+ 81 | |         |element| {
+ 82 | |             let mut nodes = Vec::new();
+...   |
+118 | |         },
+119 | |     ) {
+    | |_____^
+    |
+    = note: `#[warn(for_loops_over_fallibles)]` on by default
+help: to check pattern in a loop use `while let`
+    |
+ 80 -     for element in reader.par_map_reduce(
+ 80 +     while let Ok(element) = reader.par_map_reduce(
+    |
+help: consider unwrapping the `Result` with `?` to iterate over its contents
+    |
+119 |     )? {
+    |      +
+help: consider using `if let` to clear intent
+    |
+ 80 -     for element in reader.par_map_reduce(
+ 80 +     if let Ok(element) = reader.par_map_reduce(
+    |
+
+warning: `osm-planet-torrent` (bin "geo-split") generated 2 warnings (run `cargo fix --bin "geo-split"` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.11s
+     Running `target/release/geo-split`
+🗺️  Geographic Split of OSM Planet
+📦 Target: 71 × 59 × 47 = 196,877 geographic buckets
+
+📊 Strategy:
+  1. Read entire planet file (86 GB)
+  2. For each node: calculate (lat_block, lon_block, size_block)
+  3. Buffer nodes by bucket
+  4. Write bucket files: bucket_<lat>_<lon>_<size>.jsonl
+
+📖 Reading planet file with 24 parallel threads...
+  Processed 0 million nodes, 0 buckets, 0 with wikidata
+
+✅ Processed 0 nodes into 0 buckets
+   Nodes with wikidata: 0
+
+💾 Writing bucket files...
+
+✅ Geographic split complete!
+📊 Total buckets: 0
+💾 Output: geo_split/
+
+🎯 Now you can:
+  - Query by location → get specific bucket
+  - Download only needed buckets
+  - Share buckets on HuggingFace

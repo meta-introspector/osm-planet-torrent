@@ -1,0 +1,27 @@
+- 104     :     // Query Wikidata for each location
+- 105     :     println!("\n🌐 Querying Wikidata...");
+- 106     :     let mut wikidata_results = File::create(format!("{}-wikidata.json", user_locs.user))?;
+- 107     :     writeln!(wikidata_results, "{{")?;
+- 108     :     writeln!(wikidata_results, r#"  "user": "{}","#, user_locs.user)?;
+- 109     :     writeln!(wikidata_results, r#"  "queries": ["#)?;
+  110, 102:     
+- 111     :     for (i, loc) in user_locs.locations.iter().enumerate() {
+- 112     :         if let Some(qid) = &loc.wikidata {
+- 113     :             println!("  Querying {} ({})...", loc.name, qid);
+- 114     :             
+- 115     :             match query_wikidata(qid).await {
+- 116     :                 Ok(data) => {
+- 117     :                     writeln!(wikidata_results, "    {{")?;
+- 118     :                     writeln!(wikidata_results, r#"      "location": "{}","#, loc.name)?;
+- 119     :                     writeln!(wikidata_results, r#"      "qid": "{}","#, qid)?;
+- 120     :                     writeln!(wikidata_results, r#"      "data": {}"#, serde_json::to_string_pretty(&data)?)?;
+- 121     :                     
+- 122     :                     // Get linked entities
+- 123     :                     if let Ok(linked) = get_linked_entities(qid).await {
+- 124     :                         println!("    → {} linked entities", linked.len());
+- 125     :                         writeln!(wikidata_results, r#"      ,"linked": {}"#, serde_json::to_string(&linked)?)?;
+- 126     :                     }
+- 127     :                     
+- 128     :                     write!(wikidata_results, "    }}")?;
+- 129     :                 }
+- 130     :                 Err(e) => {

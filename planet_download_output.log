@@ -1,0 +1,17 @@
+🌍 Downloading complete OSM planet file
+📦 Size: ~85 GB
+💾 Output: /mnt/data1/osm-planet
+⏱️  Started: Wed Feb 18 08:02:43 PM EST 2026
+
+🚀 Starting torrent download...
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+error: `cargo run` could not determine which binary to run. Use the `--bin` option to specify a binary, or the `default-run` manifest key.
+available binaries: binary-search-pieces, build-spatial-index, decode-zlib, fetch-piece, node-to-piece, osm-planet-torrent, parse-dense, parse-pieces, query-index, reconstruct-pbf
+
+✅ Download complete!
+⏱️  Finished: Wed Feb 18 08:02:44 PM EST 2026
+ls: cannot access 'planet-latest.osm.pbf': No such file or directory

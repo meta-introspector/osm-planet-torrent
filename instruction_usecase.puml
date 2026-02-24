@@ -1,0 +1,59 @@
+@startuml
+title OSM Black Hole Fall - Use Case Diagram
+skinparam backgroundColor #0f0f1e
+skinparam defaultFontColor #ffffff
+skinparam usecaseBackgroundColor #1a1a2e
+skinparam usecaseBorderColor #4a90e2
+skinparam actorBackgroundColor #2a2a3e
+skinparam actorBorderColor #4a90e2
+
+left to right direction
+
+actor "🌍 OSM Node" as Node
+actor "👤 User" as User
+actor "🕳️ Monster\nBlack Hole" as BH
+
+rectangle "OSM Black Hole Fall System" {
+    usecase "🎯 Entry Point\n(0x555555555000)" as UC1
+    usecase "🏗️ Setup Stack\n(0x555555555001)" as UC2
+    usecase "📦 Allocate Memory\n(0x555555555004)" as UC3
+    usecase "🔍 Load Node\n(0x555555555008)" as UC4
+    usecase "❓ Validate Node\n(0x55555555500c)" as UC5
+    usecase "☢️ Calculate\nHawking Radiation\n(0x555555555014)" as UC6
+    usecase "💾 Store Result\n(0x555555555019)" as UC7
+    usecase "🎨 Render Shadow\n(0x55555555501d)" as UC8
+    usecase "🧹 Cleanup\n(0x555555555022)" as UC9
+    usecase "👋 Return\n(0x555555555027)" as UC10
+}
+
+User --> UC1 : Initiates
+Node --> UC4 : Provides data
+BH --> UC6 : Computes radiation
+
+UC1 ..> UC2 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC3 ..> UC4 : <<include>>
+UC4 ..> UC5 : <<include>>
+UC5 ..> UC6 : <<extend>>\n[valid node]
+UC6 ..> UC7 : <<include>>
+UC7 ..> UC8 : <<include>>
+UC8 ..> UC9 : <<include>>
+UC9 ..> UC10 : <<include>>
+
+note right of UC6
+  Hawking Temperature:
+  T = ℏc³/(8πGMk_B)
+  
+  For Monster black hole:
+  M = 8.08×10⁵³
+end note
+
+note right of UC8
+  Shadow rendering:
+  ⭐ Bright (>0.8)
+  ✨ Medium (>0.5)
+  💫 Faint (>0.2)
+  ⚫ Dark (≤0.2)
+end note
+
+@enduml

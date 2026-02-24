@@ -1,0 +1,15 @@
+=== OSM Torrent Filter Log ===
+Torrent: https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent
+Output: ./osm-data
+Filter: lat=10.9617, lon=79.3881, radius=5 miles
+
+Adding torrent...
+Torrent added: 0
+
+Torrent metadata:
+  Name: Some("planet-260209.osm.pbf")
+  Files: 1
+  Total size: 91279 MB
+  File[0]: planet-260209.osm.pbf (91279 MB)
+
+Starting download...

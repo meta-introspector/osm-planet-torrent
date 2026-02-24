@@ -1,0 +1,108 @@
+rust pls
+
+Here’s a minimal Rust sketch that takes a slice containing exactly one OSM PBF **blob** (one “chunk” in the PBF sense) and decodes the `PrimitiveBlock` from it, using the low‑level `osm-pbf`/`osmpbfreader`-style API.
+
+I’ll assume:
+
+- Your “chunk” starts at the 4‑byte length prefix of the `BlobHeader`.
+- You have prost‑generated types from `fileformat.proto` and `osmformat.proto` (or use an existing crate that exposes them similarly).
+
+```rust
+use std::io::Cursor;
+
+// Adjust imports to your crate:
+// typically something like:
+//
+// use osm_pbf::fileformat::{BlobHeader, Blob};
+// use osm_pbf::osmformat::PrimitiveBlock;
+//
+// or from osmpbfreader's re-exports:
+// use osmpbfreader::fileformat::{BlobHeader, Blob};
+// use osmpbfreader::osmformat::PrimitiveBlock;
+
+fn read_single_pbf_chunk(chunk: &[u8]) -> anyhow::Result<PrimitiveBlock> {
+    let mut cur = Cursor::new(chunk);
+
+    // 1. Read 4-byte big-endian header length
+    let header_len = {
+        use std::io::Read;
+        let mut buf = [0u8; 4];
+        cur.read_exact(&mut buf)?;
+        u32::from_be_bytes(buf) as usize
+    };
+
+    // 2. Read and decode BlobHeader
+    let header_bytes = {
+        use std::io::Read;
+        let mut buf = vec![0u8; header_len];
+        cur.read_exact(&mut buf)?;
+        buf
+    };
+
+    let header: BlobHeader = prost::Message::decode(&header_bytes[..])?;
+
+    // 3. Read Blob according to header.datasize
+    let data_size = header.datasize as usize;
+    let blob_bytes = {
+        use std::io::Read;
+        let mut buf = vec![0u8; data_size];
+        cur.read_exact(&mut buf)?;
+        buf
+    };
+
+    let blob: Blob = prost::Message::decode(&blob_bytes[..])?;
+
+    // 4. Decompress blob into raw PrimitiveBlock bytes
+    let raw = if let Some(zlib_data) = &blob.zlib_data {
+        // zlib stream
+        use flate2::read::ZlibDecoder;
+        use std::io::Read;
+
+        let mut decoder = ZlibDecoder::new(&zlib_data[..]);
+        let mut out = Vec::with_capacity(blob.raw_size as usize);
+        decoder.read_to_end(&mut out)?;
+        out
+    } else if let Some(raw) = &blob.raw {
+        raw.clone()
+    } else {
+        // handle other compression methods (lz4, etc.) if needed
+        anyhow::bail!("unsupported compression method in blob");
+    };
+
+    // 5. Decode PrimitiveBlock
+    let primitive_block: PrimitiveBlock = prost::Message::decode(&raw[..])?;
+    Ok(primitive_block)
+}
+```
+
+Usage:
+
+```rust
+fn main() -> anyhow::Result<()> {
+    // Suppose `chunk` is a &[u8] containing exactly one blob
+    // (4-byte header length + header + blob).
+    let chunk: Vec<u8> = get_chunk_somehow();
+
+    let block = read_single_pbf_chunk(&chunk)?;
+    for group in &block.primitivegroup {
+        // inspect nodes / ways / relations / dense nodes here
+    }
+    Ok(())
+}
+```
+
+If instead your “chunk” starts *after* the 4‑byte length (i.e., at `BlobHeader`), just strip the first read and pass a fake 4‑byte prefix (or change the function to take a `header_len` plus slice starting at the prefix).
+
+If you tell me which Rust crate you’re actually using (`osmpbf`, `osmpbfreader`, `rosm_pbf_reader`, etc.) and what exactly your chunk boundaries look like (do they include the 4‑byte length or not?), I can rewrite this against that crate’s concrete types and helpers so you don’t have to touch prost directly.
+
+Citations:
+[1] rosm_pbf_reader - Rust - Docs.rs https://docs.rs/rosm_pbf_reader
+[2] osmpbfreader - Rust - Docs.rs https://docs.rs/osmpbfreader
+[3] b-r-u/osmpbf: A Rust library for reading the OpenStreetMap PBF file ... https://github.com/b-r-u/osmpbf
+[4] TeXitoi/osmpbfreader-rs: Read OpenStreetMap PBF files in rust. https://github.com/TeXitoi/osmpbfreader-rs
+[5] osmpbfreader-rs: read OpenStreetMap PBF files with rust. - Reddit https://www.reddit.com/r/rust/comments/2o5506/osmpbfreaderrs_read_openstreetmap_pbf_files_with/
+[6] rosm_pbf_reader - crates.io: Rust Package Registry https://crates.io/crates/rosm_pbf_reader
+[7] PBF Format - OpenStreetMap Wiki https://wiki.openstreetmap.org/wiki/PBF_Format
+[8] osm-pbf - crates.io: Rust Package Registry https://crates.io/crates/osm-pbf
+[9] osm-pbf-reader — Geo crate // Lib.rs https://lib.rs/crates/osm-pbf-reader
+[10] Is there a way to analyze OMS (Open Street Maps) pbf files for large ... https://stackoverflow.com/questions/68845934/is-there-a-way-to-analyze-oms-open-street-maps-pbf-files-for-large-areas-germ

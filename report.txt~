@@ -1,0 +1,54 @@
+# OSM Leech Lattice Tiles - Status Report
+
+## Date: 2026-02-20
+
+## Objective
+Create OSM planet tiles with 24D Leech lattice encoding, Monster Group symmetry, and rich attributes (wikidata, highway, amenity). Output as compressed Parquet files.
+
+## Problem
+- JSONL writer works but produces 527 GB uncompressed (57 GB compressed)
+- Parquet writer OOMs because it buffers all nodes in memory before writing
+- Parquet format doesn't support append - must write complete files
+
+## Solution: Write Parquet in Chunks
+
+### Approach
+1. Buffer nodes per tile up to 10K chunk size
+2. Write chunk to temporary Parquet file
+3. At end, merge all chunks per tile into final Parquet
+
+### Memory Constraints
+- Available: 17 GB
+- Threads: 8 parsers + 8 writers = 16 threads
+- Buffer: 10K nodes per tile × 4,189 tiles = max 41M nodes
+- Each LeechNode: ~500 bytes
+- Max memory: 41M × 500 = 20 GB (TOO MUCH)
+
+### Better Approach: Write Chunks Immediately
+- Buffer only 1K nodes per tile
+- Write chunk when tile reaches 1K nodes
+- Merge chunks at end per tile
+- Max memory: 4,189 tiles × 1K nodes × 500 bytes = 2 GB ✓
+
+## Current Status
+- ✅ Schema designed (30+ OSM attributes)
+- ✅ 24D Leech lattice encoding implemented
+- ✅ JSONL writer works (with flush)
+- ❌ Parquet writer OOMs
+- ⏳ Need chunked Parquet writer
+
+## Next Steps
+1. Modify writer to use 1K chunks per tile
+2. Write chunk_NNNN.parquet files
+3. Merge chunks at end using Arrow
+4. Test on 2-minute sample
+5. Run full planet
+6. Upload to Archive.org
+
+## Files
+- `/home/mdupont/projects/osm-parquet-tiles/src/main.rs` - Needs chunk writing
+- `/mnt/data1/osm-planet/leech-tiles/tiles_leech/` - 11 GB partial JSONL (stopped)
+- `/mnt/data1/osm-planet/planet-latest.osm.pbf` - 86 GB input
+
+## Time Spent
+12+ hours on this task

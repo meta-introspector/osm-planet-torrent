@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Generate Hecke operator doors (T_2 through T_71)
+
+HECKE_PRIMES=(2 3 5 7 11 13 19 29 31 41 47 71)
+
+for p in "${HECKE_PRIMES[@]}"; do
+  cat > "templates/door${p}.html" << HTML
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door $p - Hecke Operator T_$p</title>
+  <style>
+    body { margin: 0; background: #001a33; overflow: hidden; }
+    canvas { display: block; }
+    .info { 
+      position: absolute; top: 20px; left: 20px; color: #00ffff; 
+      font-family: monospace; z-index: 10; 
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door $p - Hecke Operator T_$p</h2>
+    <p>Prime: $p | Eigenspace Visualization</p>
+    <p>Files: ~65,000 OSM tiles</p>
+    <p><a href="index.html" style="color: #00ffff;">← Back to Doors</a></p>
+  </div>
+  <canvas id="hecke"></canvas>
+  <script>
+    const canvas = document.getElementById('hecke');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const prime = $p;
+    let time = 0;
+    
+    function drawHecke() {
+      ctx.fillStyle = 'rgba(0, 26, 51, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw prime-fold symmetry
+      for (let i = 0; i < prime; i++) {
+        const angle = (i / prime) * Math.PI * 2 + time * 0.001;
+        const r1 = 100;
+        const r2 = 250 + Math.sin(time * 0.01 + i) * 50;
+        
+        const x1 = cx + Math.cos(angle) * r1;
+        const y1 = cy + Math.sin(angle) * r1;
+        const x2 = cx + Math.cos(angle) * r2;
+        const y2 = cy + Math.sin(angle) * r2;
+        
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = \`hsl(\${(i * 360 / prime + time * 0.1) % 360}, 100%, 50%)\`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Outer circle
+        ctx.beginPath();
+        ctx.arc(x2, y2, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#00ffff';
+        ctx.fill();
+      }
+      
+      // Center
+      ctx.beginPath();
+      ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ffff';
+      ctx.fill();
+      
+      // Prime number
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$p', cx, cy);
+      
+      time++;
+      requestAnimationFrame(drawHecke);
+    }
+    
+    drawHecke();
+  </script>
+</body>
+</html>
+HTML
+
+  cp "templates/door${p}.html" "public_html/doors/door-${p}.html"
+  echo "✅ Door $p (T_$p)"
+done
+
+echo ""
+echo "✅ Built ${#HECKE_PRIMES[@]} Hecke operator doors"

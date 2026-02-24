@@ -1,0 +1,65 @@
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+warning: unused import: `std::fs::File`
+ --> src/chunk_writer.rs:4:5
+  |
+4 | use std::fs::File;
+  |     ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `file_id`
+  --> src/print_storage.rs:56:26
+   |
+56 |     fn pwrite_all(&self, file_id: usize, offset: u64, buf: &[u8]) -> Result<()> {
+   |                          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_id`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: for loop over a `Result`. This is more readably written as an `if let` statement
+  --> src/print_storage.rs:24:24
+   |
+24 |           for element in reader.par_map_reduce(
+   |  ________________________^
+25 | |             |element| {
+26 | |                 let mut coords = Vec::new();
+27 | |                 match element {
+...  |
+36 | |             |mut a, b| { a.extend(b); a }
+37 | |         ) {
+   | |_________^
+   |
+   = note: `#[warn(for_loops_over_fallibles)]` on by default
+help: to check pattern in a loop use `while let`
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         while let Ok(element) = reader.par_map_reduce(
+   |
+help: consider using `if let` to clear intent
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         if let Ok(element) = reader.par_map_reduce(
+   |
+
+warning: `osm-planet-torrent` (lib) generated 3 warnings (run `cargo fix --lib -p osm-planet-torrent` to apply 1 suggestion)
+   Compiling osm-planet-torrent v0.1.0 (/home/mdupont/projects/osm-planet-torrent)
+    Finished `release` profile [optimized] target(s) in 1.28s
+     Running `target/release/extract-kumbakonam`
+🎯 Extracting Kumbakonam area (Ramanujan's house)
+📍 Location: 10.9617°N, 79.3881°E
+📏 Radius: 20 miles
+
+📦 Bounding box:
+   Lat: [10.6718, 11.2516]
+   Lon: [79.0982, 79.6780]
+
+📖 Reading planet file...
+
+✅ Extraction complete!
+📊 Results:
+   Nodes: 0
+   Wikidata entities: 0
+   Output: kumbakonam_area.jsonl

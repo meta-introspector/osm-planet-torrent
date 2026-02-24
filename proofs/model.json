@@ -1,0 +1,18 @@
+{
+  "monster_primes": [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,59,71],
+  "num_shards": 71,
+  "emoji_cube_size": 13824,
+  "compressed_size": 150,
+  "compression_ratio": 94,
+  "performance": {
+    "malloc_max": 1.0,
+    "throughput_min": 1000,
+    "latency_max": 100
+  },
+  "coordinates": {
+    "lat_min": -90.0,
+    "lat_max": 90.0,
+    "lon_min": -180.0,
+    "lon_max": 180.0
+  }
+}

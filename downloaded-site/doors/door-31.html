@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Door 31 - Hecke Operator T_31</title>
+  <style>
+    body { margin: 0; background: #001a33; overflow: hidden; }
+    canvas { display: block; }
+    .info { 
+      position: absolute; top: 20px; left: 20px; color: #00ffff; 
+      font-family: monospace; z-index: 10; 
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h2>🚪 Door 31 - Hecke Operator T_31</h2>
+    <p>Prime: 31 | Eigenspace Visualization</p>
+    <p>Files: ~65,000 OSM tiles</p>
+    <p><a href="index.html" style="color: #00ffff;">← Back to Doors</a></p>
+  </div>
+  <canvas id="hecke"></canvas>
+  <script>
+    const canvas = document.getElementById('hecke');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const prime = 31;
+    let time = 0;
+    
+    function drawHecke() {
+      ctx.fillStyle = 'rgba(0, 26, 51, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw prime-fold symmetry
+      for (let i = 0; i < prime; i++) {
+        const angle = (i / prime) * Math.PI * 2 + time * 0.001;
+        const r1 = 100;
+        const r2 = 250 + Math.sin(time * 0.01 + i) * 50;
+        
+        const x1 = cx + Math.cos(angle) * r1;
+        const y1 = cy + Math.sin(angle) * r1;
+        const x2 = cx + Math.cos(angle) * r2;
+        const y2 = cy + Math.sin(angle) * r2;
+        
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = `hsl(${(i * 360 / prime + time * 0.1) % 360}, 100%, 50%)`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Outer circle
+        ctx.beginPath();
+        ctx.arc(x2, y2, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#00ffff';
+        ctx.fill();
+      }
+      
+      // Center
+      ctx.beginPath();
+      ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ffff';
+      ctx.fill();
+      
+      // Prime number
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('31', cx, cy);
+      
+      time++;
+      requestAnimationFrame(drawHecke);
+    }
+    
+    drawHecke();
+  </script>
+</body>
+</html>

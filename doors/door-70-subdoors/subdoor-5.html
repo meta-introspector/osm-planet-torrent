@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Subdoor 5 - Archive.org Torrents</title>
+    <meta charset="utf-8">
+    <style>
+        body { margin: 0; padding: 20px; font-family: monospace; background: #000; color: #0f0; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #0ff; }
+        .dataset { background: #111; padding: 15px; margin: 10px 0; border: 1px solid #0f0; }
+        .dataset h3 { color: #ff0; margin: 0 0 10px; }
+        .torrent-link { color: #0ff; text-decoration: none; }
+        .torrent-link:hover { color: #fff; }
+        .stats { color: #888; font-size: 12px; }
+        .back { margin-top: 20px; }
+        .back a { color: #0f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 Subdoor 5 - Archive.org Torrents</h1>
+        <p>22 datasets available via BitTorrent (selective download)</p>
+        
+        <div id="datasets"></div>
+        
+        <div class="back">
+            <a href="index.html">← Back to Door 70 Subdoors</a>
+        </div>
+    </div>
+    
+    <script>
+        const datasets = [
+            {name: "pacific", desc: "Pacific Ocean nodes", shard: 0},
+            {name: "himalayas", desc: "Himalayan peaks", shard: 5},
+            {name: "amazon", desc: "Amazon rainforest", shard: 10},
+            {name: "giza", desc: "Giza Pyramids (Cusp 17)", shard: 17},
+            {name: "silicon", desc: "Silicon Valley (Cusp 23)", shard: 23},
+            {name: "newyork", desc: "New York City", shard: 30},
+            {name: "tokyo", desc: "Tokyo Metro", shard: 35},
+            {name: "london", desc: "London", shard: 40},
+            {name: "ramanujan", desc: "Ramanujan Temple (Cusp 59)", shard: 59},
+            {name: "omega", desc: "Omega Point", shard: 70}
+        ];
+        
+        const html = datasets.map(d => `
+            <div class="dataset">
+                <h3>📦 Shard ${d.shard}: ${d.name}</h3>
+                <p>${d.desc}</p>
+                <div class="stats">
+                    <a class="torrent-link" href="https://archive.org/download/osm-planet-${d.name}-monster/${d.name}_archive.torrent">
+                        ⬇️ Download Torrent
+                    </a> | 
+                    <a class="torrent-link" href="https://archive.org/details/osm-planet-${d.name}-monster">
+                        📊 View on Archive.org
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('datasets').innerHTML = html;
+    </script>
+</body>
+</html>

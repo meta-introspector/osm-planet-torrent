@@ -1,0 +1,198 @@
+warning: Git tree '/mnt/data1/nix/vendor/rust/cargo2nix' is dirty
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+warning: ignoring the client-specified setting 'stalled-download-timeout', because it is a restricted setting and you are not a trusted user
+Nix development shell with Rust, libgit2, curl, openssl, and rocksdb dependencies ready.
+warning: unused import: `std::fs::File`
+ --> src/chunk_writer.rs:4:5
+  |
+4 | use std::fs::File;
+  |     ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `file_id`
+  --> src/print_storage.rs:56:26
+   |
+56 |     fn pwrite_all(&self, file_id: usize, offset: u64, buf: &[u8]) -> Result<()> {
+   |                          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_id`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: for loop over a `Result`. This is more readably written as an `if let` statement
+  --> src/print_storage.rs:24:24
+   |
+24 |           for element in reader.par_map_reduce(
+   |  ________________________^
+25 | |             |element| {
+26 | |                 let mut coords = Vec::new();
+27 | |                 match element {
+...  |
+36 | |             |mut a, b| { a.extend(b); a }
+37 | |         ) {
+   | |_________^
+   |
+   = note: `#[warn(for_loops_over_fallibles)]` on by default
+help: to check pattern in a loop use `while let`
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         while let Ok(element) = reader.par_map_reduce(
+   |
+help: consider using `if let` to clear intent
+   |
+24 -         for element in reader.par_map_reduce(
+24 +         if let Ok(element) = reader.par_map_reduce(
+   |
+
+warning: `osm-planet-torrent` (lib) generated 3 warnings (run `cargo fix --lib -p osm-planet-torrent` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.11s
+     Running `target/release/index-planet`
+🗺️  Indexing OSM planet file
+📦 File: /mnt/data1/osm-planet/planet-latest.osm.pbf
+📊 Piece size: 4 MB
+💾 Index: complete_spatial_index.jsonl
+
+📈 Total size: 85 GB
+📈 Total pieces: 21763
+
+📊 Progress: 0.0% | Piece 0 | Indexed: 1 | Monster block: (41, 33) | 159 wikidata
+📊 Progress: 0.5% | Piece 100 | Indexed: 60 | Monster block: (37, 31) | 8 wikidata
+📊 Progress: 1.8% | Piece 400 | Indexed: 286 | Monster block: (39, 31) | 6 wikidata
+📊 Progress: 2.8% | Piece 600 | Indexed: 389 | Monster block: (40, 31) | 133 wikidata
+📊 Progress: 3.2% | Piece 700 | Indexed: 453 | Monster block: (40, 33) | 132 wikidata
+📊 Progress: 4.1% | Piece 900 | Indexed: 610 | Monster block: (40, 29) | 836 wikidata
+📊 Progress: 6.0% | Piece 1300 | Indexed: 916 | Monster block: (42, 31) | 30 wikidata
+📊 Progress: 6.4% | Piece 1400 | Indexed: 985 | Monster block: (41, 32) | 79 wikidata
+📊 Progress: 7.4% | Piece 1600 | Indexed: 1129 | Monster block: (40, 33) | 69 wikidata
+📊 Progress: 7.8% | Piece 1700 | Indexed: 1192 | Monster block: (35, 29) | 2863 wikidata
+📊 Progress: 8.3% | Piece 1800 | Indexed: 1249 | Monster block: (41, 31) | 8 wikidata
+📊 Progress: 8.7% | Piece 1900 | Indexed: 1310 | Monster block: (38, 30) | 39 wikidata
+📊 Progress: 9.2% | Piece 2000 | Indexed: 1374 | Monster block: (40, 33) | 18 wikidata
+📊 Progress: 9.6% | Piece 2100 | Indexed: 1438 | Monster block: (40, 31) | 46 wikidata
+📊 Progress: 10.1% | Piece 2200 | Indexed: 1507 | Monster block: (38, 31) | 54 wikidata
+📊 Progress: 11.5% | Piece 2500 | Indexed: 1743 | Monster block: (41, 26) | 109 wikidata
+📊 Progress: 11.9% | Piece 2600 | Indexed: 1834 | Monster block: (37, 30) | 29 wikidata
+📊 Progress: 12.4% | Piece 2700 | Indexed: 1924 | Monster block: (40, 33) | 31 wikidata
+📊 Progress: 12.9% | Piece 2800 | Indexed: 2010 | Monster block: (38, 29) | 46 wikidata
+📊 Progress: 13.3% | Piece 2900 | Indexed: 2095 | Monster block: (40, 31) | 94 wikidata
+📊 Progress: 13.8% | Piece 3000 | Indexed: 2183 | Monster block: (40, 33) | 77 wikidata
+📊 Progress: 14.2% | Piece 3100 | Indexed: 2276 | Monster block: (38, 33) | 50 wikidata
+📊 Progress: 14.7% | Piece 3200 | Indexed: 2367 | Monster block: (39, 33) | 51 wikidata
+📊 Progress: 15.2% | Piece 3300 | Indexed: 2463 | Monster block: (39, 33) | 41 wikidata
+📊 Progress: 15.6% | Piece 3400 | Indexed: 2555 | Monster block: (41, 30) | 29 wikidata
+📊 Progress: 16.1% | Piece 3500 | Indexed: 2655 | Monster block: (41, 31) | 36 wikidata
+📊 Progress: 16.5% | Piece 3600 | Indexed: 2755 | Monster block: (40, 33) | 32 wikidata
+📊 Progress: 17.0% | Piece 3700 | Indexed: 2855 | Monster block: (40, 31) | 13 wikidata
+📊 Progress: 17.5% | Piece 3800 | Indexed: 2955 | Monster block: (37, 31) | 578 wikidata
+📊 Progress: 17.9% | Piece 3900 | Indexed: 3055 | Monster block: (37, 32) | 99 wikidata
+📊 Progress: 18.4% | Piece 4000 | Indexed: 3155 | Monster block: (39, 31) | 44 wikidata
+📊 Progress: 18.8% | Piece 4100 | Indexed: 3255 | Monster block: (38, 33) | 98 wikidata
+📊 Progress: 19.3% | Piece 4200 | Indexed: 3355 | Monster block: (40, 30) | 7 wikidata
+📊 Progress: 19.8% | Piece 4300 | Indexed: 3455 | Monster block: (37, 33) | 28 wikidata
+📊 Progress: 20.2% | Piece 4400 | Indexed: 3555 | Monster block: (39, 31) | 28 wikidata
+📊 Progress: 20.7% | Piece 4500 | Indexed: 3655 | Monster block: (40, 31) | 10 wikidata
+📊 Progress: 21.1% | Piece 4600 | Indexed: 3755 | Monster block: (39, 31) | 9 wikidata
+📊 Progress: 21.6% | Piece 4700 | Indexed: 3855 | Monster block: (39, 30) | 41 wikidata
+📊 Progress: 22.1% | Piece 4800 | Indexed: 3955 | Monster block: (40, 32) | 19 wikidata
+📊 Progress: 22.5% | Piece 4900 | Indexed: 4055 | Monster block: (39, 31) | 82 wikidata
+📊 Progress: 23.0% | Piece 5000 | Indexed: 4155 | Monster block: (40, 29) | 29 wikidata
+📊 Progress: 23.4% | Piece 5100 | Indexed: 4255 | Monster block: (40, 29) | 14 wikidata
+📊 Progress: 23.9% | Piece 5200 | Indexed: 4355 | Monster block: (40, 33) | 14 wikidata
+📊 Progress: 24.4% | Piece 5300 | Indexed: 4455 | Monster block: (40, 29) | 25 wikidata
+📊 Progress: 24.8% | Piece 5400 | Indexed: 4555 | Monster block: (41, 31) | 35 wikidata
+📊 Progress: 25.3% | Piece 5500 | Indexed: 4655 | Monster block: (40, 29) | 48 wikidata
+📊 Progress: 25.7% | Piece 5600 | Indexed: 4755 | Monster block: (39, 32) | 48 wikidata
+📊 Progress: 26.2% | Piece 5700 | Indexed: 4855 | Monster block: (40, 31) | 46 wikidata
+📊 Progress: 26.7% | Piece 5800 | Indexed: 4955 | Monster block: (38, 32) | 43 wikidata
+📊 Progress: 27.1% | Piece 5900 | Indexed: 5055 | Monster block: (40, 29) | 46 wikidata
+📊 Progress: 27.6% | Piece 6000 | Indexed: 5155 | Monster block: (38, 29) | 33 wikidata
+📊 Progress: 28.0% | Piece 6100 | Indexed: 5255 | Monster block: (38, 31) | 52 wikidata
+📊 Progress: 28.5% | Piece 6200 | Indexed: 5355 | Monster block: (41, 30) | 155 wikidata
+📊 Progress: 28.9% | Piece 6300 | Indexed: 5455 | Monster block: (39, 29) | 28 wikidata
+📊 Progress: 29.4% | Piece 6400 | Indexed: 5555 | Monster block: (40, 30) | 57 wikidata
+📊 Progress: 29.9% | Piece 6500 | Indexed: 5655 | Monster block: (40, 29) | 43 wikidata
+📊 Progress: 30.3% | Piece 6600 | Indexed: 5755 | Monster block: (38, 29) | 8 wikidata
+📊 Progress: 30.8% | Piece 6700 | Indexed: 5855 | Monster block: (41, 30) | 38 wikidata
+📊 Progress: 31.2% | Piece 6800 | Indexed: 5955 | Monster block: (40, 33) | 26 wikidata
+📊 Progress: 31.7% | Piece 6900 | Indexed: 6055 | Monster block: (40, 32) | 44 wikidata
+📊 Progress: 32.2% | Piece 7000 | Indexed: 6155 | Monster block: (38, 33) | 55 wikidata
+📊 Progress: 32.6% | Piece 7100 | Indexed: 6255 | Monster block: (40, 29) | 75 wikidata
+📊 Progress: 33.1% | Piece 7200 | Indexed: 6355 | Monster block: (41, 30) | 35 wikidata
+📊 Progress: 33.5% | Piece 7300 | Indexed: 6455 | Monster block: (36, 31) | 229 wikidata
+📊 Progress: 34.0% | Piece 7400 | Indexed: 6555 | Monster block: (39, 31) | 34 wikidata
+📊 Progress: 34.5% | Piece 7500 | Indexed: 6655 | Monster block: (40, 33) | 18 wikidata
+📊 Progress: 34.9% | Piece 7600 | Indexed: 6755 | Monster block: (40, 33) | 16 wikidata
+📊 Progress: 35.4% | Piece 7700 | Indexed: 6855 | Monster block: (41, 31) | 48 wikidata
+📊 Progress: 35.8% | Piece 7800 | Indexed: 6955 | Monster block: (36, 31) | 21 wikidata
+📊 Progress: 36.3% | Piece 7900 | Indexed: 7055 | Monster block: (41, 34) | 39 wikidata
+📊 Progress: 36.8% | Piece 8000 | Indexed: 7155 | Monster block: (39, 33) | 50 wikidata
+📊 Progress: 37.2% | Piece 8100 | Indexed: 7255 | Monster block: (41, 27) | 4 wikidata
+📊 Progress: 37.7% | Piece 8200 | Indexed: 7355 | Monster block: (41, 29) | 34 wikidata
+📊 Progress: 38.1% | Piece 8300 | Indexed: 7455 | Monster block: (39, 31) | 18 wikidata
+📊 Progress: 38.6% | Piece 8400 | Indexed: 7555 | Monster block: (41, 34) | 28 wikidata
+📊 Progress: 39.1% | Piece 8500 | Indexed: 7655 | Monster block: (40, 31) | 72 wikidata
+📊 Progress: 39.5% | Piece 8600 | Indexed: 7755 | Monster block: (38, 31) | 11 wikidata
+📊 Progress: 40.0% | Piece 8700 | Indexed: 7855 | Monster block: (38, 29) | 12 wikidata
+📊 Progress: 40.4% | Piece 8800 | Indexed: 7955 | Monster block: (38, 32) | 44 wikidata
+📊 Progress: 40.9% | Piece 8900 | Indexed: 8055 | Monster block: (41, 32) | 48 wikidata
+📊 Progress: 41.4% | Piece 9000 | Indexed: 8155 | Monster block: (40, 30) | 14 wikidata
+📊 Progress: 41.8% | Piece 9100 | Indexed: 8255 | Monster block: (39, 30) | 21 wikidata
+📊 Progress: 42.3% | Piece 9200 | Indexed: 8355 | Monster block: (40, 30) | 6 wikidata
+📊 Progress: 42.7% | Piece 9300 | Indexed: 8455 | Monster block: (39, 31) | 19 wikidata
+📊 Progress: 43.2% | Piece 9400 | Indexed: 8555 | Monster block: (39, 31) | 14 wikidata
+📊 Progress: 43.7% | Piece 9500 | Indexed: 8655 | Monster block: (37, 31) | 22 wikidata
+📊 Progress: 44.1% | Piece 9600 | Indexed: 8755 | Monster block: (42, 30) | 40 wikidata
+📊 Progress: 44.6% | Piece 9700 | Indexed: 8855 | Monster block: (40, 31) | 12 wikidata
+📊 Progress: 45.0% | Piece 9800 | Indexed: 8955 | Monster block: (37, 31) | 13 wikidata
+📊 Progress: 45.5% | Piece 9900 | Indexed: 9055 | Monster block: (42, 31) | 19 wikidata
+📊 Progress: 45.9% | Piece 10000 | Indexed: 9155 | Monster block: (39, 29) | 6 wikidata
+📊 Progress: 46.4% | Piece 10100 | Indexed: 9255 | Monster block: (38, 31) | 5 wikidata
+📊 Progress: 46.9% | Piece 10200 | Indexed: 9355 | Monster block: (38, 29) | 12 wikidata
+📊 Progress: 47.3% | Piece 10300 | Indexed: 9455 | Monster block: (40, 31) | 14 wikidata
+📊 Progress: 47.8% | Piece 10400 | Indexed: 9555 | Monster block: (40, 30) | 12 wikidata
+📊 Progress: 48.2% | Piece 10500 | Indexed: 9655 | Monster block: (38, 31) | 9 wikidata
+📊 Progress: 48.7% | Piece 10600 | Indexed: 9755 | Monster block: (39, 33) | 4 wikidata
+📊 Progress: 49.2% | Piece 10700 | Indexed: 9855 | Monster block: (41, 29) | 3 wikidata
+📊 Progress: 49.6% | Piece 10800 | Indexed: 9955 | Monster block: (40, 31) | 61 wikidata
+📊 Progress: 50.1% | Piece 10900 | Indexed: 10055 | Monster block: (41, 31) | 6 wikidata
+📊 Progress: 50.5% | Piece 11000 | Indexed: 10155 | Monster block: (38, 33) | 7 wikidata
+📊 Progress: 51.0% | Piece 11100 | Indexed: 10255 | Monster block: (39, 29) | 12 wikidata
+📊 Progress: 51.5% | Piece 11200 | Indexed: 10355 | Monster block: (41, 32) | 17 wikidata
+📊 Progress: 51.9% | Piece 11300 | Indexed: 10455 | Monster block: (39, 31) | 12 wikidata
+📊 Progress: 52.4% | Piece 11400 | Indexed: 10555 | Monster block: (38, 30) | 10 wikidata
+📊 Progress: 52.8% | Piece 11500 | Indexed: 10655 | Monster block: (38, 31) | 8 wikidata
+📊 Progress: 53.3% | Piece 11600 | Indexed: 10755 | Monster block: (39, 29) | 4 wikidata
+📊 Progress: 53.8% | Piece 11700 | Indexed: 10855 | Monster block: (39, 30) | 22 wikidata
+📊 Progress: 54.2% | Piece 11800 | Indexed: 10955 | Monster block: (38, 31) | 8 wikidata
+📊 Progress: 54.7% | Piece 11900 | Indexed: 11055 | Monster block: (39, 29) | 32 wikidata
+📊 Progress: 55.1% | Piece 12000 | Indexed: 11155 | Monster block: (40, 30) | 13 wikidata
+📊 Progress: 55.6% | Piece 12100 | Indexed: 11255 | Monster block: (41, 30) | 22 wikidata
+📊 Progress: 56.1% | Piece 12200 | Indexed: 11355 | Monster block: (40, 31) | 8 wikidata
+📊 Progress: 56.5% | Piece 12300 | Indexed: 11455 | Monster block: (40, 33) | 48 wikidata
+📊 Progress: 57.0% | Piece 12400 | Indexed: 11555 | Monster block: (40, 31) | 3 wikidata
+📊 Progress: 57.4% | Piece 12500 | Indexed: 11655 | Monster block: (40, 29) | 14 wikidata
+📊 Progress: 57.9% | Piece 12600 | Indexed: 11755 | Monster block: (40, 31) | 6 wikidata
+📊 Progress: 58.4% | Piece 12700 | Indexed: 11855 | Monster block: (40, 27) | 28 wikidata
+📊 Progress: 58.8% | Piece 12800 | Indexed: 11955 | Monster block: (39, 32) | 2 wikidata
+📊 Progress: 59.3% | Piece 12900 | Indexed: 12055 | Monster block: (39, 31) | 6 wikidata
+📊 Progress: 59.7% | Piece 13000 | Indexed: 12155 | Monster block: (42, 29) | 25 wikidata
+📊 Progress: 60.2% | Piece 13100 | Indexed: 12255 | Monster block: (39, 31) | 0 wikidata
+📊 Progress: 60.7% | Piece 13200 | Indexed: 12355 | Monster block: (40, 30) | 24 wikidata
+📊 Progress: 61.1% | Piece 13300 | Indexed: 12455 | Monster block: (40, 31) | 90 wikidata
+📊 Progress: 61.6% | Piece 13400 | Indexed: 12555 | Monster block: (40, 30) | 13 wikidata
+📊 Progress: 62.0% | Piece 13500 | Indexed: 12655 | Monster block: (40, 33) | 17 wikidata
+📊 Progress: 62.5% | Piece 13600 | Indexed: 12755 | Monster block: (39, 30) | 26 wikidata
+📊 Progress: 63.0% | Piece 13700 | Indexed: 12855 | Monster block: (41, 30) | 31 wikidata
+📊 Progress: 63.4% | Piece 13800 | Indexed: 12955 | Monster block: (42, 30) | 1 wikidata
+📊 Progress: 63.9% | Piece 13900 | Indexed: 13055 | Monster block: (42, 31) | 26 wikidata
+📊 Progress: 64.3% | Piece 14000 | Indexed: 13155 | Monster block: (39, 31) | 12 wikidata
+📊 Progress: 64.8% | Piece 14100 | Indexed: 13255 | Monster block: (40, 33) | 26 wikidata
+📊 Progress: 65.2% | Piece 14200 | Indexed: 13355 | Monster block: (40, 30) | 13 wikidata
+📊 Progress: 65.7% | Piece 14300 | Indexed: 13455 | Monster block: (40, 31) | 19 wikidata
+📊 Progress: 66.2% | Piece 14400 | Indexed: 13555 | Monster block: (38, 29) | 10 wikidata
+📊 Progress: 66.6% | Piece 14500 | Indexed: 13655 | Monster block: (38, 29) | 11 wikidata
+📊 Progress: 67.1% | Piece 14600 | Indexed: 13755 | Monster block: (39, 29) | 5 wikidata
+
+✅ Indexing complete!
+📊 Total pieces indexed: 13768/21763
+💾 Index saved to: complete_spatial_index.jsonl

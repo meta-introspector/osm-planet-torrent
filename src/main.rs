@@ -3,6 +3,10 @@ mod userdir;
 mod wikidata;
 mod monster;
 mod crawler;
+mod download;
+mod stream;
+mod piece_download;
+mod piece_index;
 
 use lava_torrent::torrent::v1::Torrent;
 use reqwest;
@@ -11,9 +15,7 @@ use std::io::Write;
 use std::env;
 use tokio;
 use userdir::load_user_locations;
-use wikidata::{query_wikidata, get_linked_entities};
-use monster::{calculate_monster_projection, print_monster_projection};
-use crawler::{extract_wikidata_from_results, recursive_wikidata_crawl};
+use piece_index::{build_index_from_torrent, save_sharded_index};
 
 const OSM_TORRENT_URL: &str = "https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent";
 
@@ -88,127 +90,15 @@ async fn index_torrent_by_location() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Piece length: {} bytes", torrent.piece_length);
     println!("  Total size: {} GB", torrent.length / (1024 * 1024 * 1024));
     
-    // Calculate Monster projection
-    let projection = calculate_monster_projection(torrent.pieces.len(), torrent.piece_length);
-    print_monster_projection(&projection);
+    // Phase 1: Build piece index
+    println!("\n📊 Phase 1: Building piece index...");
+    let piece_index = build_index_from_torrent(output_file)?;
     
-    // Save projection
-    let proj_file = File::create(format!("{}-monster-projection.json", user_locs.user))?;
-    serde_json::to_writer_pretty(proj_file, &projection)?;
-    println!("\n✓ Monster projection saved to {}-monster-projection.json", user_locs.user);
+    // Save sharded index
+    save_sharded_index(piece_index, "index")?;
     
-    // Query Wikidata for each location
-    println!("\n🌐 Querying Wikidata...");
-    let mut wikidata_results = File::create(format!("{}-wikidata.json", user_locs.user))?;
-    writeln!(wikidata_results, "{{")?;
-    writeln!(wikidata_results, r#"  "user": "{}","#, user_locs.user)?;
-    writeln!(wikidata_results, r#"  "queries": ["#)?;
-    
-    for (i, loc) in user_locs.locations.iter().enumerate() {
-        if let Some(qid) = &loc.wikidata {
-            println!("  Querying {} ({})...", loc.name, qid);
-            
-            match query_wikidata(qid).await {
-                Ok(data) => {
-                    writeln!(wikidata_results, "    {{")?;
-                    writeln!(wikidata_results, r#"      "location": "{}","#, loc.name)?;
-                    writeln!(wikidata_results, r#"      "qid": "{}","#, qid)?;
-                    writeln!(wikidata_results, r#"      "data": {}"#, serde_json::to_string_pretty(&data)?)?;
-                    
-                    // Get linked entities
-                    if let Ok(linked) = get_linked_entities(qid).await {
-                        println!("    → {} linked entities", linked.len());
-                        writeln!(wikidata_results, r#"      ,"linked": {}"#, serde_json::to_string(&linked)?)?;
-                    }
-                    
-                    write!(wikidata_results, "    }}")?;
-                }
-                Err(e) => {
-                    println!("    ✗ Error: {}", e);
-                }
-            }
-            
-            if i < user_locs.locations.len() - 1 {
-                writeln!(wikidata_results, ",")?;
-            } else {
-                writeln!(wikidata_results)?;
-            }
-        }
-    }
-    
-    writeln!(wikidata_results, "  ]")?;
-    writeln!(wikidata_results, "}}")?;
-    
-    println!("\n✓ Wikidata results saved to {}-wikidata.json", user_locs.user);
-    
-    // Index locations to pieces
-    println!("\n🗺️ {} Journey → Torrent Pieces:", user_locs.user);
-    let mut location_index = File::create(format!("{}-location-index.json", user_locs.user))?;
-    writeln!(location_index, "{{")?;
-    writeln!(location_index, r#"  "user": "{}","#, user_locs.user)?;
-    if let Some(wd) = &user_locs.wikidata_user {
-        writeln!(location_index, r#"  "wikidata_user": "{}","#, wd)?;
-    }
-    writeln!(location_index, r#"  "torrent": "{}","#, torrent.name)?;
-    writeln!(location_index, r#"  "pieces": {},"#, torrent.pieces.len())?;
-    writeln!(location_index, r#"  "locations": ["#)?;
-    
-    for (i, loc) in user_locs.locations.iter().enumerate() {
-        let piece_idx = location_to_piece_index(loc.lat, loc.lon, torrent.pieces.len());
-        let radius_pieces = pieces_in_radius(loc.lat, loc.lon, loc.radius_miles, torrent.pieces.len(), torrent.piece_length);
-        let shard = piece_idx % 71; // Monster prime
-        
-        println!("  {} ({:.4}, {:.4})", loc.name, loc.lat, loc.lon);
-        if let Some(wd) = &loc.wikidata {
-            println!("    Wikidata: {}", wd);
-        }
-        println!("    → Center Piece: {}", piece_idx);
-        println!("    → {}mi Radius: {} pieces ({} MB)", loc.radius_miles, radius_pieces.len(), radius_pieces.len() * 4);
-        println!("    → Shard: {} (mod 71)", shard);
-        
-        writeln!(location_index, "    {{")?;
-        writeln!(location_index, r#"      "name": "{}","#, loc.name)?;
-        writeln!(location_index, r#"      "lat": {},"#, loc.lat)?;
-        writeln!(location_index, r#"      "lon": {},"#, loc.lon)?;
-        if let Some(wd) = &loc.wikidata {
-            writeln!(location_index, r#"      "wikidata": "{}","#, wd)?;
-        }
-        writeln!(location_index, r#"      "piece": {},"#, piece_idx)?;
-        writeln!(location_index, r#"      "shard": {}"#, shard)?;
-        write!(location_index, "    }}")?;
-        if i < user_locs.locations.len() - 1 {
-            writeln!(location_index, ",")?;
-        } else {
-            writeln!(location_index)?;
-        }
-    }
-    
-    writeln!(location_index, "  ]")?;
-    writeln!(location_index, "}}")?;
-    
-    println!("\n✓ Index saved to {}-location-index.json", user_locs.user);
-    
-    // Recursive Wikidata crawl
-    println!("\n🕸️ Recursive Wikidata crawl (depth 1, limit 17 per seed)...");
-    let wikidata_file = format!("{}-wikidata.json", user_locs.user);
-    match extract_wikidata_from_results(&wikidata_file).await {
-        Ok(initial_qids) => {
-            println!("  Found {} initial Q IDs", initial_qids.len());
-            
-            match recursive_wikidata_crawl(initial_qids, 1).await {
-                Ok(crawl_data) => {
-                    let crawl_file = File::create(format!("{}-wikidata-crawl.json", user_locs.user))?;
-                    serde_json::to_writer_pretty(crawl_file, &crawl_data)?;
-                    println!("\n✓ Crawl saved to {}-wikidata-crawl.json", user_locs.user);
-                    println!("  Total entities: {}", crawl_data["total_entities"]);
-                }
-                Err(e) => println!("  ✗ Crawl error: {}", e),
-            }
-        }
-        Err(e) => println!("  ✗ Extract error: {}", e),
-    }
-    
-    println!("\n∴ Now fetch only needed pieces! 🕉️→🎓");
+    println!("\n✓ Index complete! Shards saved to index/");
+    println!("   Share this index so others can skip Phase 1");
     
     Ok(())
 }

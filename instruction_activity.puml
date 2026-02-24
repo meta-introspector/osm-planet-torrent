@@ -1,0 +1,83 @@
+@startuml
+title OSM Black Hole Fall - Activity Diagram
+skinparam backgroundColor #0f0f1e
+skinparam defaultFontColor #ffffff
+skinparam activityBackgroundColor #1a1a2e
+skinparam activityBorderColor #4a90e2
+
+start
+
+:🎯 **Entry Point**
+0x555555555000
+push rbp;
+note right: Save base pointer
+
+:🏗️ **Stack Setup**
+0x555555555001
+mov rbp, rsp;
+note right: Set up stack frame
+
+:📦 **Allocate Memory**
+0x555555555004
+sub rsp, 32;
+note right: Reserve 32 bytes
+
+:🔍 **Load Node**
+0x555555555008
+mov rax, [rbp-8];
+note right
+  rax = 0x7f1234567890
+  Heap pointer to OSM node
+end note
+
+:❓ **Validate Node**
+0x55555555500c
+test rax, rax;
+
+if (Node is NULL?) then (yes)
+  :🚫 **Null Path**
+  0x555555555020
+  xor eax, eax;
+  note right: Return 0
+else (no)
+  :☢️ **Calculate Hawking Radiation**
+  0x555555555014
+  call calculate_hawking_radiation;
+  note right
+    T = 1/(8πM)
+    M = 8.08×10⁵³
+    Result in rax
+  end note
+  
+  :💾 **Store Result**
+  0x555555555019
+  mov [rbp-16], rax;
+  note right: Save to stack
+  
+  :🎨 **Render Shadow**
+  0x55555555501d
+  call render_shadow;
+  note right
+    ASCII shadow:
+    ⭐ → ✨ → 💫 → ⚫
+  end note
+endif
+
+:🧹 **Cleanup**
+0x555555555022
+add rsp, 32;
+note right: Deallocate stack
+
+:🔙 **Restore**
+0x555555555026
+pop rbp;
+note right: Restore base pointer
+
+:👋 **Exit**
+0x555555555027
+ret;
+note right: Return to caller
+
+stop
+
+@enduml

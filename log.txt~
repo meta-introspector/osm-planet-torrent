@@ -1,0 +1,25 @@
+🧪 TEST: Downloading and filtering Ramanujan_House_Kumbakonam...
+🔗 Starting torrent download...
+📥 Adding torrent: https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent
+✓ Torrent added: 0
+📦 Torrent info:
+   Name: Some("planet-260209.osm.pbf")
+   Files: 1
+   Total size: 91279 MB
+   [0] planet-260209.osm.pbf (91279 MB)
+
+⏳ Downloading OSM data...
+   Filtering for lat=10.9617, lon=79.3881, radius=5 miles
+📊 Progress: initializing: 9.46% (8.0Gi / 85.0Gi)
+📊 Progress: initializing: 18.85% (16.0Gi / 85.0Gi)
+📊 Progress: initializing: 28.31% (24.0Gi / 85.0Gi)
+📊 Progress: initializing: 37.67% (32.0Gi / 85.0Gi)
+📊 Progress: initializing: 47.19% (40.1Gi / 85.0Gi)
+📊 Progress: initializing: 57.01% (48.4Gi / 85.0Gi)
+📊 Progress: initializing: 67.17% (57.0Gi / 85.0Gi)
+📊 Progress: initializing: 77.32% (65.7Gi / 85.0Gi)
+📊 Progress: initializing: 87.47% (74.3Gi / 85.0Gi)
+📊 Progress: initializing: 97.61% (82.9Gi / 85.0Gi)
+📊 Progress: live: 0.45% (394.8Mi / 85.0Gi) [down speed: 8.91 MiB/s, eta: 2h 42m, up speed: 0.00 MiB/s]
+Self exited with status: exit status: 124
+> 

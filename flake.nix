@@ -1,86 +1,158 @@
 {
-  description = "OSM/Wikipedia torrent → IPFS → Solana witness";
+  description = "Monster OSM Quest - Sparse torrent extraction with ZK witnesses";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    sops-nix.url = "github:Mic92/sops-nix";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, sops-nix, rust-overlay }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ rust-overlay.overlays.default ];
-      };
-      
-      # Security shard: mod 23 (Paxos witness prime)
-      securityShard = 23;
-      
-    in {
-      packages.${system} = {
-        osm-torrent-client = pkgs.rustPlatform.buildRustPackage {
-          pname = "osm-planet-torrent";
+  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+        
+        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+          extensions = [ "rust-src" "rustfmt" "clippy" ];
+        };
+        
+        # Build all Monster OSM binaries
+        monsterOsmBinaries = pkgs.rustPlatform.buildRustPackage {
+          pname = "monster-osm-quest";
           version = "0.1.0";
+          
           src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
           
-          nativeBuildInputs = [ 
-            pkgs.pkg-config 
-          ];
-          buildInputs = [ 
-            pkgs.openssl.dev
-            pkgs.curl
-            pkgs.libgit2
-            pkgs.libssh2
-            pkgs.zlib
-            pkgs.nghttp2
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+          
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            protobuf
           ];
           
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-        };
-      };
-      
-      # Monadic execution in security shard
-      nixosModules.torrent-witness = { config, ... }: {
-        imports = [ sops-nix.nixosModules.sops ];
-        
-        sops = {
-          defaultSopsFile = ./secrets/solana-keypair.yaml;
-          secrets = {
-            "solana/keypair" = {
-              # Only accessible in shard 23
-              mode = "0400";
-              owner = "torrent-witness";
-            };
-            "ipfs/api-key" = {
-              mode = "0400";
-              owner = "torrent-witness";
-            };
+          buildInputs = with pkgs; [
+            zlib
+            openssl
+          ];
+          
+          # Build all binaries
+          cargoBuildFlags = [
+            "--bins"
+          ];
+          
+          # Impure build - allow network access for dependencies
+          __impure = true;
+          
+          meta = {
+            description = "Monster OSM Quest - Sparse torrent extraction";
+            homepage = "https://github.com/meta-introspector/osm-planet-torrent";
           };
         };
         
-        systemd.services.torrent-witness = {
-          description = "Torrent → IPFS → Solana witness (shard 23)";
-          wantedBy = [ "multi-user.target" ];
-          
-          serviceConfig = {
-            User = "torrent-witness";
-            ExecStart = "${self.packages.${system}.osm-torrent-client}/bin/osm-planet-torrent";
-            Environment = [
-              "SOLANA_KEYPAIR_PATH=${config.sops.secrets."solana/keypair".path}"
-              "IPFS_API_KEY_PATH=${config.sops.secrets."ipfs/api-key".path}"
-              "SECURITY_SHARD=${toString securityShard}"
-            ];
+      in {
+        packages = {
+          default = monsterOsmBinaries;
+          monster-osm = monsterOsmBinaries;
+        };
+        
+        apps = {
+          zkperf-dense = {
+            type = "app";
+            program = "${monsterOsmBinaries}/bin/zkperf_dense";
+          };
+          fractran-osm = {
+            type = "app";
+            program = "${monsterOsmBinaries}/bin/fractran_osm";
+          };
+          ramanujan-walkers = {
+            type = "app";
+            program = "${monsterOsmBinaries}/bin/ramanujan_24_walkers";
+          };
+          walkers-lmfdb = {
+            type = "app";
+            program = "${monsterOsmBinaries}/bin/walkers_with_lmfdb";
           };
         };
         
-        users.users.torrent-witness = {
-          isSystemUser = true;
-          group = "torrent-witness";
+        devShells.default = pkgs.mkShell {
+          name = "monster-osm-dev";
+          
+          buildInputs = with pkgs; [
+            rustToolchain
+            
+            # OSM/PBF tools
+            protobuf
+            zlib
+            openssl
+            pkg-config
+            
+            # Torrent clients
+            aria2
+            transmission_4
+            
+            # Data processing
+            jq
+            
+            # Python for scripts
+            python3
+            python3Packages.libtorrent-rasterbar
+            
+            # Visualization
+            asciinema
+            
+            # GitHub CLI
+            gh
+          ];
+          
+          shellHook = ''
+            echo "🎭 Monster OSM Quest - Development Shell"
+            echo "========================================"
+            echo ""
+            echo "📦 Binaries to build:"
+            echo "  - zkperf_dense       (sparse extraction + ZK witness)"
+            echo "  - fractran_osm       (FRACTRAN encoding)"
+            echo "  - ramanujan_24_walkers (walker simulation)"
+            echo "  - walkers_with_lmfdb (LMFDB discovery)"
+            echo "  - math_nodes_world   (database projection)"
+            echo ""
+            echo "🔨 Build commands:"
+            echo "  cargo build --release --bin zkperf_dense"
+            echo "  cargo build --release --bins  # all binaries"
+            echo ""
+            echo "🧪 Test commands:"
+            echo "  ./test-zkperf-quick.sh 13668 10"
+            echo "  ./test-sparse-torrent.sh 13668 10"
+            echo ""
+            echo "🚀 Run with nix:"
+            echo "  nix run .#zkperf-dense -- --help"
+            echo "  nix run .#fractran-osm -- --piece 13668"
+            echo ""
+            
+            export RUST_BACKTRACE=1
+            export CARGO_TARGET_DIR="$PWD/target"
+            export RUST_SRC_PATH="${rustToolchain}/lib/rustlib/src/rust/library"
+          '';
         };
-        users.groups.torrent-witness = {};
-      };
-    };
+        
+        # CI/CD helper
+        checks = {
+          build-all = monsterOsmBinaries;
+          
+          test-zkperf = pkgs.runCommand "test-zkperf" {
+            buildInputs = [ monsterOsmBinaries pkgs.jq ];
+          } ''
+            echo "Testing zkperf_dense..."
+            ${monsterOsmBinaries}/bin/zkperf_dense --help > $out
+          '';
+        };
+      }
+    );
 }
