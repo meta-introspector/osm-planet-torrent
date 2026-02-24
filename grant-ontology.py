@@ -158,8 +158,11 @@ def main():
     print("🔮 DASL-CBOR GRANT ONTOLOGY")
     print("=" * 60)
     
-    # Load recon data
-    recon_file = Path("/mnt/data1/time-2026/02-february/24/RECON_COMPLETE_20260224_101537.json")
+    # Load recon data (latest)
+    recon_dir = Path("/mnt/data1/time-2026/02-february/24")
+    recon_files = sorted(recon_dir.glob("RECON_COMPLETE_*.json"))
+    recon_file = recon_files[-1]  # Latest
+    print(f"📂 Loading: {recon_file.name}")
     recon_data = json.loads(recon_file.read_text())
     
     # Create ontology
